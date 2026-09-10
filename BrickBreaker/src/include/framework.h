@@ -63,7 +63,7 @@ struct Window {
 		allImg = LoadTexture("./resources/Spritesheet/spritesheet_double.png");
 		bricksImg = LoadTexture("./resources/Spritesheet/bricks.png");
 		backgroundMusic = std::make_unique<CppMusic>("./resources/music/The Last Encounter Medium Loop.wav");
-		winSound = std::make_unique<CppSound>("./resources/music/Won!.wav");
+		winSound = std::make_unique<CppSound>("./resources/music/Won!.wav",1);
 		breakSound = std::make_unique<CppSound>("./resources/music/break_block_3.wav", 8);
 		LoadXml();
 		LoadJson();
@@ -72,6 +72,9 @@ struct Window {
 	Window& operator=(const Window&) = delete;
 	~Window() {
 		UnloadTexture(allImg);
+		UnloadTexture(bricksImg);
+		CloseAudioDevice();
+		CloseWindow();
 	}
 	void setFps(int n) {
 		fps = n;

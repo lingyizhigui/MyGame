@@ -4,12 +4,13 @@
 #include "framework.h"
 #include <algorithm>
 #include <string>
+#include <vector>
 struct Ball {
-	static const int MaxVelocity = 16;
-	static const int FastVelocity = 6;
+	static const int MaxVelocity = 20;
+	static const int FastVelocity = 8;
 	Vector2 pos;
 	Vector2 speed;
-	std::array<Vector2, 16> tails;
+	std::array<Vector2, 16> tails{};
 	int index = 0;
 	static constexpr int radius = 22;
 	static constexpr int width = 44;
@@ -27,7 +28,7 @@ struct Ball {
 		index = (index + 1) % tails.size();
 		pos = Vector2Add(pos, speed);
 		if (Vector2Length(speed) > FastVelocity) {
-			speed *= 0.998f;
+			speed *= 0.9985f;
 		}
 	}
 	void move(Vector2 path) {
@@ -100,28 +101,49 @@ struct Ball {
 				speed = Vector2Scale(speed, MaxVelocity);
 			}
 			if (Vector2Length(speed) > FastVelocity) {
-				speed *= 0.95;
+				speed *= 0.80f;
 			}
 		}
 	}
 };
 struct Brick {
 	Vector2 pos;
+	char indexX;
+	char indexY;
 	char status = 0;
 	char hp = 4;
-	static constexpr char Normal = 1;
-	static constexpr char Colorful = 2;
-	static constexpr char Bomb = 3;
+	enum kind {
+		Normal = 1,
+		NewBall = 2,
+		Bomb = 3,
+	};
+	inline static const std::vector<float> Weight = { 10.0f,20.0f,1.0f,2.0f };
+	inline static const std::vector<int> ParticleNum = { 0,24,16,32 };
+	inline static const std::vector<int> MaxHp = { 0,4,1,1 };
 	Brick(Vector2 v = { 0.0f,0.0f }) :pos(v) {};
-	void drawBreak() const{
-		if (hp <= 2) {
-			DrawLineEx(pos, { pos.x + 64.0f,pos.y + 64.0f }, 20, BLACK);
-		}
+	void resetStatus(char _status) {
+		status = _status;
+		hp = MaxHp[status];
 	}
-	void draw(const Window& window) const {
+	void draw(const Window& window, const Color& _color) const {
+		if (!status) return;
 		std::string path = "broke_brick_" + std::to_string(hp);
-		const auto& r = window.posMap.find(path)->second;
-		DrawTextureRec(window.bricksImg, r, pos, WHITE);
+		Rectangle r = window.posMap.find(path)->second;
+		Texture2D texture = window.bricksImg;
+		Color color = WHITE;
+		if (status == kind::NewBall) {
+			path = "element_grey_square.png";
+			r = window.posMap.find(path)->second;
+			texture = window.allImg;
+			color = _color;
+		}
+		if (status == kind::Bomb) {
+			std::string path = "element_grey_square.png";
+			r = window.posMap.find(path)->second;
+			texture = window.allImg;
+			color = DARKBLUE;
+		}
+		DrawTextureRec(texture, r, pos, color);
 	}
 };
 struct Particle {
@@ -129,12 +151,13 @@ struct Particle {
 	int height;
 	int width;
 	Vector2 velocity;
-	int life = 30;
+	Color color;
+	int life = 45;
 	static constexpr float gravity = 0.5f;
-	Particle(Vector2 _position) {
+	Particle(Vector2 _position,Color _color = RAYWHITE):color(_color) {
 		pos = { _position.x + GetRandomValue(-16,16),_position.y + GetRandomValue(-16,16) };
-		height = GetRandomValue(1, 4);
-		width = GetRandomValue(1, 4);
+		height = GetRandomValue(1, 6);
+		width = GetRandomValue(1, 6);
 		int speed = GetRandomValue(40, 100) / 10;
 		float angle = GetRandomValue(1, 360) * DEG2RAD;
 		velocity = Vector2Rotate(Vector2(1, 0) * speed, angle);
@@ -145,7 +168,7 @@ struct Particle {
 		life--;
 	}
 	void draw() const{
-		DrawRectangle(pos.x, pos.y, width, height, RAYWHITE);
+		DrawRectangle(pos.x, pos.y, width, height, color);
 	}
 };
 struct Paddle {
@@ -153,7 +176,7 @@ struct Paddle {
 	Vector2 speed = { 0.0f,0.0f };
 	float angle = 0;
 	float targetAngle = 0;
-	static constexpr float velocity = 2.5f;
+	static constexpr float velocity = 3.5f;
 	static constexpr int width = 208;
 	static constexpr int height = 48;
 	Paddle() {
@@ -188,3 +211,13 @@ struct Paddle {
 		
 	}
 };
+int getWeightedRandom(const std::vector<float>& vec) {
+	float sum = std::accumulate(vec.begin(), vec.end(), 0.0f);
+	float value = GetRandomValue(0, 99999) / 100000.0f;
+	value = value * sum;
+	float accumulate = 0.0f;
+	for (int i = 0; i < vec.size(); i++) {
+		accumulate += vec[i];
+		if (accumulate > value) return i;
+	}
+}

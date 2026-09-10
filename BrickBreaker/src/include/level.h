@@ -1,12 +1,13 @@
 #pragma once
 #include <array>
 #include <algorithm>
+#include <format>
 #include "elements.h"
 #include "framework.h"
 class GameLevel {
 private:
-	static constexpr int gameIndexW = 12;
-	static constexpr int gameIndexH = 6;
+	static constexpr char gameIndexW = 12;
+	static constexpr char gameIndexH = 6;
 	static constexpr int GameWidth = 64 * gameIndexW;
 	static constexpr int GameHeight = 64 * (gameIndexH + 4);
 	const Window& window;
@@ -14,7 +15,7 @@ private:
 	int gameLeft;
 	std::array<std::array<Brick, 12>, 6> bricks;
 	std::vector<Ball> balls;
-	std::vector<std::array<Particle,16>> particles;
+	std::vector<Particle> particles;
 	Paddle paddle;
 	bool gameStart = false;
 	bool gameOver = false;
@@ -22,16 +23,22 @@ private:
 	TextCenter gameStartText;
 	TextCenter gameOverText;
 	TextCenter gameWinText;
+	double startTime = 0.0;
+	double gameTime = 0.0;
+	double bestTime = 0.0;
 	int currentWin = 0;
 	Vector2 mousePos = { 0,0 };
+	int hsv = 0;
 	std::array<std::string, 3> currentWinStr = { "Current","Win","Streak" };
 public:
 	void resetBricks() {
 		for (int i = 0; i < gameIndexH; i++) {
 			for (int j = 0; j < gameIndexW; j++) {
-				bricks[i][j].pos = Vector2(gameLeft + j * 64, gameTop + i * 64);
-				bricks[i][j].status = GetRandomValue(0, 1);
-				bricks[i][j].hp = 4;
+				Brick& b = bricks[i][j];
+				b.indexX = j;
+				b.indexY = i;
+				b.pos = Vector2(gameLeft + j * 64, gameTop + i * 64);
+				b.resetStatus(getWeightedRandom(b.Weight));
 			}
 		}
 	}
@@ -50,17 +57,73 @@ public:
 	void mousePosRedirect() {
 		mousePos.x = std::max(float(gameLeft), mousePos.x);
 		mousePos.x = std::min(float(gameLeft + GameWidth), mousePos.x);
-		mousePos.y = std::max(float(gameTop + GameHeight - 64 * 3.5f), mousePos.y);
+		mousePos.y = std::max(float(gameTop + GameHeight - 64 * 3), mousePos.y);
 		mousePos.y = std::min(float(gameTop + GameHeight), mousePos.y);
 	}
 	void readyStartGame() {
 		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 			gameStart = true;
+			startTime = GetTime();
 			Vector2 v{ GetRandomValue(10,10),GetRandomValue(-5,-3) };
 			balls.push_back(Ball(Vector2(mousePos.x, mousePos.y - 22 - 24), v));
 		}
 	}
+	void breakIncident(Brick& bri, std::vector<Vector2>& newBallPos) {
+		if (!bri.status) return;
+		for (int genPat = 0; genPat < bri.ParticleNum[bri.status]; genPat++) {
+			particles.push_back(Particle(Vector2(bri.pos.x + 32, bri.pos.y + 32)));
+		}
+		char status = bri.status;
+		bri.status = 0;
+		window.breakSound->play();
+		if (status == bri.kind::NewBall) {
+			newBallPos.push_back({ bri.pos.x + 32,bri.pos.y + 32 });
+		}
+		else if (status == bri.kind::Bomb) {
+			for (char i = bri.indexX - 1; i <= bri.indexX + 1; i++) {
+				for (char j = bri.indexY - 1; j <= bri.indexY + 1; j++) {
+					if (i < 0 || i >= gameIndexW) continue;
+					if (j < 0 || j >= gameIndexH) continue;
+					breakIncident(bricks[j][i], newBallPos);
+				}
+			}
+		}
+	}
+	bool collideWithBricks(Ball& ball,std::vector<Vector2>& addBallPos) {
+		for (auto& vec:bricks) {
+			for (Brick& brick:vec) {
+				if (brick.status) {
+					Rectangle r(brick.pos.x, brick.pos.y, 64, 64);
+					if (Vector2 t = ball.isCollideAsRect(r); t != Vector2{ 0,0 }) {
+						ball.collide(t);
+						brick.hp--;
+						if (Vector2Length(ball.speed) > ball.FastVelocity) {
+							if (brick.hp) brick.hp--;
+						}
+						if (brick.hp == 0) breakIncident(brick, addBallPos);
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	bool collideWithPaddle(Ball& b) {
+		const int PICIES = 8;
+		for (int piece = 0; piece < PICIES; piece++) {
+			Vector2 thatPos = Vector2Subtract(paddle.pos, paddle.speed / PICIES * (PICIES - piece));
+			Rectangle r(thatPos.x, thatPos.y, paddle.width, paddle.height);
+			if (Vector2 t = b.isCollideRotated(r, paddle.angle); t != Vector2{ 0,0 }) {
+				Vector2 normT = Vector2Normalize(t);
+				b.collide(t, Vector2DotProduct(normT, paddle.speed));
+				b.move(paddle.speed / PICIES * (PICIES - piece));
+				return true;
+			}
+		}
+		return false;
+	}
 	void update() {
+		hsv = (hsv + 2) % 360;
 		mousePos = GetMousePosition();
 		mousePosRedirect();
 		paddle.update(mousePos);
@@ -77,96 +140,45 @@ public:
 			resetBricks();
 		}
 		else {
-			auto timeOutParticles = particles.end();
-			for (auto it = particles.begin();it!=particles.end();it++) {
-				for (auto& p : *it) {
-					if (!p.life) {
-						timeOutParticles = it;
-						break;
-					}
-					p.go();
+			if(!gameWin) gameTime = GetTime() - startTime;
+			for (int i=0;i<particles.size();) {
+				if (!particles[i].life) {
+					std::swap(particles[i], particles.back());
+					particles.pop_back();
+				}
+				else{
+					particles[i].go();
+					i++;
 				}
 			}
-			if (timeOutParticles != particles.end()) {
-				particles.erase(timeOutParticles);
-			}
-			Vector2 addBall = { 0,0 };
+			std::vector<Vector2> addBall;
 			for (auto it = balls.begin(); it != balls.end();) {
 				Ball& b = *it;
 				b.go();
 				if (b.pos.y > gameTop + GameHeight - 22 - 5) {
 					it = balls.erase(it);
-					if (balls.size() == 0 && addBall == Vector2(0, 0) && !gameWin) {
+					if (balls.size() == 0 && addBall.size() == 0 && !gameWin) {
 						gameOver = true;
 						currentWin = 0;
 					}
 					continue;
 				}
-				bool collideHappen = false;
+				bool collideHappen = collideWithBricks(b, addBall);
 				int total = 0;
-				for (int i = 0; i < gameIndexH; i++) {
-					for (int j = 0; j < gameIndexW; j++) {
-						if (bricks[i][j].status) {
-							total++;
-							if (!collideHappen) {
-								Rectangle r(gameLeft + j * 64, gameTop + i * 64, 64, 64);
-								if (Vector2 t = b.isCollide(r); t != Vector2{ 0,0 }) {
-									b.collide(t);
-									bricks[i][j].hp--;
-									if (bricks[i][j].status == 6) {
-										bricks[i][j].status = 0;
-										addBall = Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32);
-									}
-									if (bricks[i][j].hp == 0) {
-										bricks[i][j].status = 0;
-										total--;
-										window.breakSound->play();
-										particles.push_back({
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											Particle(Vector2(gameLeft + j * 64 + 32, gameTop + i * 64 + 32)),
-											});
-									}
-									collideHappen = true;
-								}
-							}
-						}
+				for (const auto& a : bricks) {
+					for (const auto& br : a) {
+						if (br.status) total++;
 					}
 				}
-				if (total == 0 && !gameWin) {
+				if (!total && !gameWin) {
 					gameWin = true;
 					window.winSound->play();
 					currentWin++;
+					if (!bestTime) bestTime = gameTime;
+					else if (gameTime < bestTime) bestTime = gameTime;
 					break;
 				}
-				if (!collideHappen) {
-					const int PICIES = 8;
-					for (int piece = 0; piece < PICIES; piece++) {
-						Vector2 thatPos = Vector2Subtract(paddle.pos, paddle.speed / PICIES * (PICIES - piece));
-						Rectangle r(thatPos.x, thatPos.y, paddle.width, paddle.height);
-						if (Vector2 t = b.isCollideRotated(r, paddle.angle); t != Vector2{ 0,0 }) {
-							Vector2 normT = Vector2Normalize(t);
-							b.collide(t, Vector2DotProduct(normT, paddle.speed));
-							b.move(paddle.speed / PICIES * (PICIES - piece));
-							collideHappen = true;
-							break;
-						}
-					}
-					
-				}
+				if (!collideHappen) collideHappen = collideWithPaddle(b);
 				if (!collideHappen) {
 					Rectangle r(gameLeft - 64, gameTop - 64, GameWidth + 64 * 2, GameHeight + 64);
 					if (Vector2 t = b.isCollideInside(r); t != Vector2{ 0,0 }) {
@@ -176,23 +188,25 @@ public:
 				}
 				it++;
 			}
-			if (addBall != Vector2(0, 0)) {
-				Vector2 v{ GetRandomValue(1,7),GetRandomValue(-5,-3) };
-				balls.push_back(Ball(addBall, v));
+			if (!addBall.empty()) {
+				for (Vector2& newBallPoss : addBall) {
+					Vector2 v{ GetRandomValue(3,7),GetRandomValue(-5,-3) };
+					balls.push_back(Ball(newBallPoss, v));
+				}
 			}
 		}
 	}
 	void basicDraw() const {
-		//DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorAlpha(BLACK, 0.3f));
 		ClearBackground(BLACK);
 		DrawRectangleLines(gameLeft - 64, gameTop - 64, GameWidth + 64 * 2, GameHeight + 64, ORANGE);
 		DrawRectangle(gameLeft - 64, gameTop + GameHeight - 5, GameWidth + 64 * 2, 5, RED);
 		DrawFPS(0, 0);
 	}
-	void drawBricks() const {
+	void drawBricks() {
+		Color color= ColorFromHSV(hsv, 0.9, 1);
 		for (int i = 0; i < gameIndexH; i++) {
 			for (int j = 0; j < gameIndexW; j++) {
-				if (bricks[i][j].status) bricks[i][j].draw(window);
+				if (bricks[i][j].status) bricks[i][j].draw(window,color);
 			}
 		}
 	}
@@ -220,11 +234,16 @@ public:
 			Vector2(paddle.width / 2, paddle.height / 2), paddle.angle, WHITE);
 	}
 	void drawParticles() const {
-		for (auto& arr: particles) {
-			for (auto& p : arr) {
-				p.draw();
-			}
+		for (auto& p: particles) {
+			p.draw();
 		}
+	}
+	std::string timeToString(double time) const{
+		int _minute = int(time / 60);
+		double _second = time - _minute * 60;
+		std::string minute = std::format("{:02d}", _minute);
+		std::string second = std::format("{:05.2f}", _second);
+		return minute + ":" + second;
 	}
 	void drawTexts() const {
 		if (!gameStart) gameStartText.draw();
@@ -233,15 +252,24 @@ public:
 		for (int i = 0; i <= currentWinStr.size(); i++) {
 			if (i < currentWinStr.size()) {
 				DrawText(currentWinStr[i].c_str(),
-					MeasureText("Current", 30) / 2 - MeasureText(currentWinStr[i].c_str(), 30) / 2 + 30,
+					MeasureText("Current", 30) / 2 - MeasureText(currentWinStr[i].c_str(), 30) / 2 + 35,
 					(i + 1) * 30, 30, RAYWHITE);
 			}
 			else {
 				Color co = currentWin ? GOLD : RAYWHITE;
 				DrawText(std::to_string(currentWin).c_str(),
-					MeasureText("Current", 30) / 2 - MeasureText(std::to_string(currentWin).c_str(), 60) / 2 + 30,
+					MeasureText("Current", 30) / 2 - MeasureText(std::to_string(currentWin).c_str(), 60) / 2 + 35,
 					(i + 1) * 30, 60, co);
 			}
 		}
+		Color co = bestTime ? GOLD : RAYWHITE;
+		DrawText("Best Time", 25, 200, 30, RAYWHITE);
+		DrawText(timeToString(bestTime).c_str(),
+			MeasureText("Best Time", 30) / 2 - MeasureText(timeToString(bestTime).c_str(), 40) / 2 + 25,
+			230, 40, co);
+
+		DrawText(timeToString(gameTime).c_str(),
+			window.WINDOW_WIDTH / 2 - MeasureText("00:00.0", 60) / 2,
+			gameTop + GameHeight + 5, 60, RAYWHITE);
 	}
 };
