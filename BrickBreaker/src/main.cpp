@@ -18,7 +18,9 @@ int main() {
 		if (IsKeyPressed(KEY_F)) {
 			window.fps == 60 ? window.setFps(120) : window.setFps(60);
 		}
-		
+		if (IsKeyPressed(KEY_B)) {
+			ToggleBorderlessWindowed();
+		}
 		levelOne.update();
 
 		BeginDrawing();
