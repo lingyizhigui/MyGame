@@ -1,28 +1,8 @@
 #pragma once
 #include "raylib.h"
+#include "common.hpp"
 #include <array>
 #include <cmath>
-struct PlayerStats {
-	float maxHealth = 100.0f;
-	float recovery = 0.0f;
-	int armor = 0;
-	float moveSpeed = 1.0f;
-
-	float strength = 1.0f;
-	float projectileSpeed = 1.0f;
-	float duration = 1.0f;
-	float area = 1.0f;
-	
-	float cooldown = 0.0f;
-	int amount = 0;
-	int revival = 0;
-	float magnet = 0.0f;
-
-	float luck = 0.0f;
-	float growth = 0.0f;
-	float greed = 0.0f;
-	float curse = 0.0f;
-};
 enum PlayerStatus
 {
 	Normal,
@@ -40,6 +20,12 @@ private:
 	float health;
 	char moveTime = 0;
 	char invincibleTime = 0;
+	struct BloodParticle {
+		Vector2 position;
+		Vector2 velocity;
+		float lifetime;
+	};
+	std::vector<BloodParticle> bloodParticles;
 public:
 	bool towards = true; // true: right, false: left
 private:
@@ -110,12 +96,22 @@ public:
 			break;
 		}
 	}
+	void drawPlayer(const Window& window) const {
+		Texture2D texture = *window.getTexture(getAnimationFrame()).sprite;
+		Rectangle source = window.getTexture(getAnimationFrame()).source;
+		if (!towards) {
+			source.width = -source.width;
+		}
+		DrawTextureRec(texture, source, { position.x - 64, position.y - 128 }, WHITE);
+
+	}
 	std::string getAnimationFrame() const {
 		return animationFrames[animationIndex];
 	}
-	Vector2 getPosition() const { return position; }
+	const Vector2& getPosition() const { return position; }
 	PlayerStatus getStatus() const { return status; }
 	float getHealth() const { return health; }
 	float getMaxHealth() const { return stats.maxHealth; }
-	PlayerStats& getStats() { return stats; }
+	const PlayerStats& getStats() const{ return stats; }
+	const bool& getTowards() const { return towards; }
 };

@@ -1,0 +1,17 @@
+{
+  "enemies": [
+    {
+      "name": "tjr",
+      "move_frames": [
+        "tjr_1",
+        "tjr_2",
+        "tjr_3",
+        "tjr_4"
+      ],
+      "death_frames": [],
+      "health": null,
+      "power": null,
+      "speed": null
+    }
+  ]
+}

@@ -32,5 +32,11 @@
     <ClInclude Include="src\include\enemy.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\include\weapon.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\common.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

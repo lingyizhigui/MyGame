@@ -130,9 +130,11 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\include\common.hpp" />
     <ClInclude Include="src\include\enemy.hpp" />
     <ClInclude Include="src\include\player.hpp" />
     <ClInclude Include="src\include\level.hpp" />
+    <ClInclude Include="src\include\weapon.hpp" />
     <ClInclude Include="src\include\window.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

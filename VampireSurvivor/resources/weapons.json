@@ -1,0 +1,10 @@
+{
+  "weapons": [
+    {
+      "name": "whip",
+      "demage": 10,
+      "width": 256,
+      "height": 128
+    }
+  ]
+}

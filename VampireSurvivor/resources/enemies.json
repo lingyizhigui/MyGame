@@ -1,0 +1,207 @@
+{
+  "enemies": [
+    {
+      "name": "small_bat",
+      "display_name": "Small Bat",
+      "move_frames": [
+        "small_bat_move_00",
+        "small_bat_move_01"
+      ],
+      "death_frames": [
+        "small_bat_death_00",
+        "small_bat_death_01",
+        "small_bat_death_02",
+        "small_bat_death_03",
+        "small_bat_death_04",
+        "small_bat_death_05",
+        "small_bat_death_06",
+        "small_bat_death_07",
+        "small_bat_death_08",
+        "small_bat_death_09",
+        "small_bat_death_10",
+        "small_bat_death_11",
+        "small_bat_death_12",
+        "small_bat_death_13"
+      ],
+      "health": 12,
+      "power": null,
+      "speed": null,
+      "width": 64,
+      "height": 64
+    },
+    {
+      "name": "reed_slime",
+      "display_name": "Reed Slime",
+      "move_frames": [
+        "reed_slime_move_00",
+        "reed_slime_move_01"
+      ],
+      "death_frames": [
+        "reed_slime_death_00",
+        "reed_slime_death_01",
+        "reed_slime_death_02",
+        "reed_slime_death_03",
+        "reed_slime_death_04",
+        "reed_slime_death_05",
+        "reed_slime_death_06",
+        "reed_slime_death_07",
+        "reed_slime_death_08",
+        "reed_slime_death_09",
+        "reed_slime_death_10",
+        "reed_slime_death_11",
+        "reed_slime_death_12",
+        "reed_slime_death_13"
+      ],
+      "health": 28,
+      "power": null,
+      "speed": null,
+      "width": 64,
+      "height": 64
+    },
+    {
+      "name": "copper_scarab",
+      "display_name": "Copper Scarab",
+      "move_frames": [
+        "copper_scarab_move_00",
+        "copper_scarab_move_01"
+      ],
+      "death_frames": [
+        "copper_scarab_death_00",
+        "copper_scarab_death_01",
+        "copper_scarab_death_02",
+        "copper_scarab_death_03",
+        "copper_scarab_death_04",
+        "copper_scarab_death_05",
+        "copper_scarab_death_06",
+        "copper_scarab_death_07",
+        "copper_scarab_death_08",
+        "copper_scarab_death_09",
+        "copper_scarab_death_10",
+        "copper_scarab_death_11",
+        "copper_scarab_death_12",
+        "copper_scarab_death_13"
+      ],
+      "health": 72,
+      "power": null,
+      "speed": null,
+      "width": 80,
+      "height": 80
+    },
+    {
+      "name": "lantern_wisp",
+      "display_name": "Lantern Wisp",
+      "move_frames": [
+        "lantern_wisp_move_00",
+        "lantern_wisp_move_01"
+      ],
+      "death_frames": [
+        "lantern_wisp_death_00",
+        "lantern_wisp_death_01",
+        "lantern_wisp_death_02",
+        "lantern_wisp_death_03",
+        "lantern_wisp_death_04",
+        "lantern_wisp_death_05",
+        "lantern_wisp_death_06",
+        "lantern_wisp_death_07",
+        "lantern_wisp_death_08",
+        "lantern_wisp_death_09",
+        "lantern_wisp_death_10",
+        "lantern_wisp_death_11",
+        "lantern_wisp_death_12",
+        "lantern_wisp_death_13"
+      ],
+      "health": 18,
+      "power": null,
+      "speed": null,
+      "width": 64,
+      "height": 64
+    },
+    {
+      "name": "thorn_shroom",
+      "display_name": "Thorn Shroom",
+      "move_frames": [
+        "thorn_shroom_move_00",
+        "thorn_shroom_move_01"
+      ],
+      "death_frames": [
+        "thorn_shroom_death_00",
+        "thorn_shroom_death_01",
+        "thorn_shroom_death_02",
+        "thorn_shroom_death_03",
+        "thorn_shroom_death_04",
+        "thorn_shroom_death_05",
+        "thorn_shroom_death_06",
+        "thorn_shroom_death_07",
+        "thorn_shroom_death_08",
+        "thorn_shroom_death_09",
+        "thorn_shroom_death_10",
+        "thorn_shroom_death_11",
+        "thorn_shroom_death_12",
+        "thorn_shroom_death_13"
+      ],
+      "health": 28,
+      "power": null,
+      "speed": null,
+      "width": 64,
+      "height": 64
+    },
+    {
+      "name": "bone_hound",
+      "display_name": "Bone Hound",
+      "move_frames": [
+        "bone_hound_move_00",
+        "bone_hound_move_01"
+      ],
+      "death_frames": [
+        "bone_hound_death_00",
+        "bone_hound_death_01",
+        "bone_hound_death_02",
+        "bone_hound_death_03",
+        "bone_hound_death_04",
+        "bone_hound_death_05",
+        "bone_hound_death_06",
+        "bone_hound_death_07",
+        "bone_hound_death_08",
+        "bone_hound_death_09",
+        "bone_hound_death_10",
+        "bone_hound_death_11",
+        "bone_hound_death_12",
+        "bone_hound_death_13"
+      ],
+      "health": 58,
+      "power": null,
+      "speed": null,
+      "width": 80,
+      "height": 80
+    },
+    {
+      "name": "basalt_golem",
+      "display_name": "Basalt Golem",
+      "move_frames": [
+        "basalt_golem_move_00",
+        "basalt_golem_move_01"
+      ],
+      "death_frames": [
+        "basalt_golem_death_00",
+        "basalt_golem_death_01",
+        "basalt_golem_death_02",
+        "basalt_golem_death_03",
+        "basalt_golem_death_04",
+        "basalt_golem_death_05",
+        "basalt_golem_death_06",
+        "basalt_golem_death_07",
+        "basalt_golem_death_08",
+        "basalt_golem_death_09",
+        "basalt_golem_death_10",
+        "basalt_golem_death_11",
+        "basalt_golem_death_12",
+        "basalt_golem_death_13"
+      ],
+      "health": 170,
+      "power": null,
+      "speed": null,
+      "width": 96,
+      "height": 96
+    }
+  ]
+}

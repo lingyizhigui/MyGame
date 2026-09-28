@@ -1,0 +1,1697 @@
+{
+  "textures": [
+    {
+      "image": "ai.png",
+      "size": {
+        "w": 1799,
+        "h": 414
+      },
+      "sprites": [
+        {
+          "filename": "basalt_golem_death_11",
+          "region": {
+            "x": 5,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_12",
+          "region": {
+            "x": 106,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_move_00",
+          "region": {
+            "x": 207,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_00",
+          "region": {
+            "x": 308,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_move_01",
+          "region": {
+            "x": 409,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_13",
+          "region": {
+            "x": 510,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_01",
+          "region": {
+            "x": 611,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_02",
+          "region": {
+            "x": 712,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_03",
+          "region": {
+            "x": 813,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_04",
+          "region": {
+            "x": 914,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_05",
+          "region": {
+            "x": 1015,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_06",
+          "region": {
+            "x": 1116,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_08",
+          "region": {
+            "x": 1217,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_07",
+          "region": {
+            "x": 1318,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_09",
+          "region": {
+            "x": 1419,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "basalt_golem_death_10",
+          "region": {
+            "x": 1520,
+            "y": 5,
+            "w": 96,
+            "h": 96
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_00",
+          "region": {
+            "x": 1621,
+            "y": 5,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_move_00",
+          "region": {
+            "x": 1706,
+            "y": 5,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_01",
+          "region": {
+            "x": 1621,
+            "y": 90,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_03",
+          "region": {
+            "x": 1706,
+            "y": 90,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_04",
+          "region": {
+            "x": 5,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_06",
+          "region": {
+            "x": 90,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_08",
+          "region": {
+            "x": 175,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_09",
+          "region": {
+            "x": 260,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_10",
+          "region": {
+            "x": 345,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_07",
+          "region": {
+            "x": 430,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_05",
+          "region": {
+            "x": 515,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_02",
+          "region": {
+            "x": 600,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_12",
+          "region": {
+            "x": 685,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_11",
+          "region": {
+            "x": 770,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_death_13",
+          "region": {
+            "x": 855,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_13",
+          "region": {
+            "x": 940,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_00",
+          "region": {
+            "x": 1025,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_move_00",
+          "region": {
+            "x": 1110,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "bone_hound_move_01",
+          "region": {
+            "x": 1195,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_01",
+          "region": {
+            "x": 1280,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_03",
+          "region": {
+            "x": 1365,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_02",
+          "region": {
+            "x": 1450,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_04",
+          "region": {
+            "x": 1535,
+            "y": 106,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_05",
+          "region": {
+            "x": 1620,
+            "y": 175,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_06",
+          "region": {
+            "x": 1705,
+            "y": 175,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_07",
+          "region": {
+            "x": 5,
+            "y": 191,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_08",
+          "region": {
+            "x": 90,
+            "y": 191,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_09",
+          "region": {
+            "x": 175,
+            "y": 191,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_10",
+          "region": {
+            "x": 260,
+            "y": 191,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_12",
+          "region": {
+            "x": 345,
+            "y": 191,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_death_11",
+          "region": {
+            "x": 430,
+            "y": 191,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "copper_scarab_move_01",
+          "region": {
+            "x": 515,
+            "y": 191,
+            "w": 80,
+            "h": 80
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_00",
+          "region": {
+            "x": 600,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_move_00",
+          "region": {
+            "x": 669,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_01",
+          "region": {
+            "x": 738,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_02",
+          "region": {
+            "x": 807,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_03",
+          "region": {
+            "x": 876,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_04",
+          "region": {
+            "x": 945,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_05",
+          "region": {
+            "x": 1014,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_06",
+          "region": {
+            "x": 1083,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_08",
+          "region": {
+            "x": 1152,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_07",
+          "region": {
+            "x": 1221,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_09",
+          "region": {
+            "x": 1290,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_11",
+          "region": {
+            "x": 1359,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_10",
+          "region": {
+            "x": 1428,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_12",
+          "region": {
+            "x": 1497,
+            "y": 191,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_move_01",
+          "region": {
+            "x": 600,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_00",
+          "region": {
+            "x": 669,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_move_00",
+          "region": {
+            "x": 738,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "lantern_wisp_death_13",
+          "region": {
+            "x": 807,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_13",
+          "region": {
+            "x": 876,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_13",
+          "region": {
+            "x": 945,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_13",
+          "region": {
+            "x": 1014,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_01",
+          "region": {
+            "x": 1083,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_02",
+          "region": {
+            "x": 1152,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_04",
+          "region": {
+            "x": 1221,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_03",
+          "region": {
+            "x": 1290,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_05",
+          "region": {
+            "x": 1359,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_06",
+          "region": {
+            "x": 1428,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_08",
+          "region": {
+            "x": 1497,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_09",
+          "region": {
+            "x": 1566,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_07",
+          "region": {
+            "x": 1635,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_10",
+          "region": {
+            "x": 1704,
+            "y": 260,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_12",
+          "region": {
+            "x": 5,
+            "y": 276,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_move_01",
+          "region": {
+            "x": 74,
+            "y": 276,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "reed_slime_death_11",
+          "region": {
+            "x": 143,
+            "y": 276,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_01",
+          "region": {
+            "x": 212,
+            "y": 276,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_02",
+          "region": {
+            "x": 281,
+            "y": 276,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_03",
+          "region": {
+            "x": 350,
+            "y": 276,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_00",
+          "region": {
+            "x": 419,
+            "y": 276,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_move_00",
+          "region": {
+            "x": 488,
+            "y": 276,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_04",
+          "region": {
+            "x": 557,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_05",
+          "region": {
+            "x": 626,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_07",
+          "region": {
+            "x": 695,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_06",
+          "region": {
+            "x": 764,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_08",
+          "region": {
+            "x": 833,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_09",
+          "region": {
+            "x": 902,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_10",
+          "region": {
+            "x": 971,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_11",
+          "region": {
+            "x": 1040,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_death_12",
+          "region": {
+            "x": 1109,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "small_bat_move_01",
+          "region": {
+            "x": 1178,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_00",
+          "region": {
+            "x": 1247,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_move_00",
+          "region": {
+            "x": 1316,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_02",
+          "region": {
+            "x": 1385,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_03",
+          "region": {
+            "x": 1454,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_01",
+          "region": {
+            "x": 1523,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_04",
+          "region": {
+            "x": 1592,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_05",
+          "region": {
+            "x": 1661,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_06",
+          "region": {
+            "x": 1730,
+            "y": 329,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_07",
+          "region": {
+            "x": 5,
+            "y": 345,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_09",
+          "region": {
+            "x": 74,
+            "y": 345,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_08",
+          "region": {
+            "x": 143,
+            "y": 345,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_10",
+          "region": {
+            "x": 212,
+            "y": 345,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_12",
+          "region": {
+            "x": 281,
+            "y": 345,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_death_11",
+          "region": {
+            "x": 350,
+            "y": 345,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "thorn_shroom_move_01",
+          "region": {
+            "x": 419,
+            "y": 345,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "version": "1.0.0",
+    "format": "RGBA8888"
+  }
+}
