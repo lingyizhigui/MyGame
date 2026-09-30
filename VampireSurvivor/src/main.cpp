@@ -16,8 +16,11 @@ int main() {
 	GameLevel level(window, player);
 	while(!WindowShouldClose()){
 		level.update();
+		if(IsKeyPressed(KEY_F11)) {
+			ToggleBorderlessWindowed();
+		}
+		window.beginDrawing();
 		level.drawLevel();
-		
-
+		window.endDrawing();
 	}
 }
