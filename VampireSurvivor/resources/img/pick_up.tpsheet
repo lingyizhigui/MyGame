@@ -1,0 +1,62 @@
+{
+  "textures": [
+    {
+      "image": "pick_up.png",
+      "size": {
+        "w": 404,
+        "h": 138
+      },
+      "sprites": [
+        {
+          "filename": "experience_gem_green",
+          "region": {
+            "x": 5,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "experience_gem_blue",
+          "region": {
+            "x": 138,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "experience_gem_red",
+          "region": {
+            "x": 271,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "version": "1.0.0",
+    "format": "RGBA8888"
+  }
+}

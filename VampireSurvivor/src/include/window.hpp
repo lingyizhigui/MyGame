@@ -1,8 +1,9 @@
-#pragma once
+﻿#pragma once
 #include "raylib.h"
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <set>
 #include <fstream>
 #include "json.hpp"
 struct DrawFromSpriteSet{
@@ -28,6 +29,8 @@ public:
 		index = (index + 1) % soundList.size();
 		PlaySound(soundList[index]);
 	}
+	SoundPool(const SoundPool&) = delete;
+	SoundPool& operator=(const SoundPool&) = delete;
 	~SoundPool() {
 		for (auto& sound : soundList) {
 			UnloadSound(sound);
@@ -42,10 +45,11 @@ private:
 	const std::string title;
 	int fps = 60;
 	RenderTexture canvas;
+	Font cnFont;
 	std::unordered_map<std::string, Music> musicMap;
 	std::unordered_map<std::string, SoundPool> soundMap;
 	std::unordered_map<std::string, Texture2D> spriteMap;
-	std::unordered_map<std::string, DrawFromSpriteSet> textureDrawMap;
+	std::unordered_map<std::string, DrawFromSpriteSet> textureDrawMap;	//只知道名字就能绘制贴图，无需关心具体精灵图
 public:
 	Window(std::string _title) :
 		title(_title) {
@@ -56,7 +60,26 @@ public:
 		SetWindowIcon(icon);
 		InitAudioDevice();
 		SetTargetFPS(fps);
+		SetExitKey(KEY_NULL);
 		canvas = LoadRenderTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
+		//加载中文字体
+		std::set<int> codepointsSet;
+		std::string usedCharacters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()-_=+[]{};:'\",.<>/?\\|`~ \n"
+			"等级：升级武器神鞭";
+		for(const char* c= usedCharacters.c_str(); *c != '\0'; ){
+			int byte = 0;
+			int codepoint = GetCodepointNext(c, &byte);
+			codepointsSet.insert(codepoint);
+			c += byte;
+		}
+		std::vector<int> codepoints(codepointsSet.begin(), codepointsSet.end());
+		cnFont = LoadFontEx(
+			"./resources/fonts/SarasaUiSC-Regular.ttf",
+			25,	//字体大小要匹配显示大小，这个有待解决
+			codepoints.data(),
+			static_cast<int>(codepoints.size())
+		);
+		SetTextureFilter(cnFont.texture, TEXTURE_FILTER_BILINEAR);	//字体用双线性插值，略平滑
 	}
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
@@ -80,13 +103,16 @@ public:
 	IntVector2 getCanvasSize() const {
 		return { WINDOW_WIDTH,WINDOW_HEIGHT };
 	}
+	const Font& getFont() const {
+		return cnFont;
+	}
 	/*
 	void LoadMusic(const std::string& name, const std::string& path) {
 		musicMap[name] = LoadMusicStream(path.c_str());
 	}
 	*/
 	void loadSoundPool(const std::string& name, const std::string& path, int n) {
-		soundMap.emplace(name, SoundPool(path, n));
+		soundMap.try_emplace(name, path, n);	//try_emplace避免构造临时对象
 	}
 	void loadSpriteSet(const std::string& spritePath, const std::string& jsonPath) {
 		std::ifstream file(jsonPath);

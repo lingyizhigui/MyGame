@@ -1,8 +1,9 @@
-#pragma once
+ï»¿#pragma once
 #include "raylib.h"
 #include "player.hpp"
 #include "enemy.hpp"
 #include "weapon.hpp"
+#include "pickup.hpp"
 #include "window.hpp"
 #include "raymath.h"
 class GameLevel {
@@ -11,15 +12,22 @@ class GameLevel {
 	EnemyGenerator generator;
 	std::vector<Enemy> enemyList;
 	std::vector<std::unique_ptr<BaseWeapon>> weaponList;
+	std::vector<std::unique_ptr<Pickup>> pickupList;
 	Player& player;
 	Camera2D camera;
 	static constexpr int GRID_SIZE = 128;
+	enum class GameState {
+		Playing,
+		paused,
+		choosing,
+		GameOver
+	} gameState = GameState::Playing;
 	struct CollideGrid {
 		Vector2 PosLeftTop;
 		std::vector<Enemy*> enemies;
 	};
 	std::array<std::array<CollideGrid, 12>, 8> collideGrid;
-	//±éÀúÖÜÎ§µÄ¸ñ×Ó
+	//éå†å‘¨å›´çš„æ ¼å­
 	void forNearGrids(int _x, int _y, std::function<void(Enemy&)> func,bool _skipCurrentGrid = false) {
 		for (size_t i = std::max(0, _y - 1); i <= std::min(static_cast<int>(collideGrid.size() - 1), _y + 1); i++) {
 			for (size_t j = std::max(0, _x - 1); j <= std::min(static_cast<int>(collideGrid[i].size() - 1), _x + 1); j++) {
@@ -32,7 +40,7 @@ class GameLevel {
 			}
 		}
 	}
-	//¾ØĞÎ°æ±¾±éÀú¸ñ×Ó
+	//çŸ©å½¢ç‰ˆæœ¬éå†æ ¼å­
 	void forNearGrids(const Rectangle& rect, std::function<void(Enemy&)> func) {
 		int x0 = static_cast<int>(rect.x) / GRID_SIZE + 1;
 		int y0 = static_cast<int>(rect.y) / GRID_SIZE + 1;
@@ -46,7 +54,7 @@ class GameLevel {
 			}
 		}
 	}
-	//±éÀú¡ú¨K¡ı¨LËÄ¸öÏàÁÚ¸ñ×Ó
+	//éå†â†’â†˜â†“â†™å››ä¸ªç›¸é‚»æ ¼å­
 	void forRightDownGrids(int _x, int _y, std::function<void(Enemy&)> func) {
 		if(_x + 1 < collideGrid[_y].size()) {
 			for(auto& enemyPtr : collideGrid[_y][_x + 1].enemies){
@@ -60,6 +68,11 @@ class GameLevel {
 				}
 			}
 		}
+	}
+	//æ€ªç‰©æ­»äº¡äº‹ä»¶
+	void onEnemyDeath(const Enemy& enemy) {
+		int expDrop = enemy.def->expDrop;
+		pickupList.emplace_back(std::make_unique<ExperienceGem>(enemy.position, expDrop));//æ‰è½ç»éªŒå®çŸ³
 	}
 public:
 	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/enemies.json"), player(_player),
@@ -79,50 +92,33 @@ public:
 		}
 	}
 	void update() {
-		//µ÷ÊÔ
-		if(IsKeyPressed(KEY_SPACE)){
-			enemyList.push_back(generator.spawn("basalt_golem", { 100.0f,100.0f }));
+		if(GameState::GameOver == gameState) {
+			return;
 		}
-		//Íæ¼Ò¸üĞÂ£¬¼ì²éÊÜÉËÓë×ÔÉí¸üĞÂ
-		float hurtDemage = 0.0f;
-		for(int i=0;i<collideGrid.size();i++){
-			for(int j=0;j<collideGrid[i].size();j++){
-				Vector2 leftTop = collideGrid[i][j].PosLeftTop;
-				Vector2 playerPosition = GetWorldToScreen2D(player.getPosition(), camera);//2D×ø±ê×ª»»
-				if (playerPosition.x >= leftTop.x && playerPosition.x < leftTop.x + GRID_SIZE &&
-					playerPosition.y >= leftTop.y && playerPosition.y < leftTop.y + GRID_SIZE) {
-					forNearGrids(j, i,
-						[&](Enemy& enemy) {
-							if (enemy.status != 1) return;
-							if (CheckCollisionCircles(player.getPosition(), player.collisionRadius, enemy.position, enemy.def->collideRadius)) {
-								hurtDemage = std::max(hurtDemage, enemy.def->power);
-								enemy.position = Vector2Add(enemy.position, Vector2Scale(enemy.direction, -10.0f));//ÍÆ¿ª¹ÖÎï
-								}
-							}
-						);
-				}
+		if(gameState == GameState::paused) {
+			if(IsKeyPressed(KEY_ESCAPE)) {
+				gameState = GameState::Playing;
 			}
+			return;
 		}
-		player.update(hurtDemage);
-		camera.target = player.getPosition();
-		//ÎäÆ÷¹¥»÷
-		for(auto& weapon : weaponList){
-			auto& projectiles = weapon->update();
-			for(auto& projectile : projectiles){
-				Vector2 projectilePosition = GetWorldToScreen2D({ projectile->rect.x,projectile->rect.y }, camera);//2D×ø±ê×ª»»
-				Rectangle projectileRect = { projectilePosition.x,projectilePosition.y,projectile->rect.width,projectile->rect.height };
-				forNearGrids(projectileRect,
-					[&projectile](Enemy& enemy) {
-						if (enemy.status != 1) return;
-						if (CheckCollisionCircleRec(enemy.position,enemy.def->hurtRadius, projectile->rect)) {
-							projectile->attack(enemy);
-						}
-					});
+		if(gameState == GameState::choosing) {
+			if(IsKeyPressed(KEY_ESCAPE)) {
+				gameState = GameState::Playing;
 			}
+			return;
 		}
-		//¹ÖÎï²¨´ÎÉú³É
+		//è°ƒè¯•
+		if(IsKeyDown(KEY_SPACE)){
+			//enemyList.push_back(generator.spawn("basalt_golem", { 100.0f,100.0f }));
+			player.levelUP();
+		}
+		if(IsKeyPressed(KEY_ESCAPE)) {
+			gameState = GameState::paused;
+			return;
+		}
+		//æ€ªç‰©æ³¢æ¬¡ç”Ÿæˆ
 		if (IsKeyPressed(KEY_E)) {
-			for(int enemySpawn=0; enemySpawn<ENEMY_WAVE_COUNT; enemySpawn++){
+			for (int enemySpawn = 0; enemySpawn < ENEMY_WAVE_COUNT; enemySpawn++) {
 				static constexpr int area = 64;
 				int gameWidth = window.getCanvasSize().x;
 				int gameHeight = window.getCanvasSize().y;
@@ -148,15 +144,15 @@ public:
 				enemyList.push_back(generator.spawn("basalt_golem", { float(x),float(y) }));
 			}
 		}
-		//¹ÖÎïÇ°½ø¡¢¸üĞÂ¶¯»­
-		std::erase_if(enemyList, [](const Enemy& enemy) { return enemy.status == 0; });//É¾³ıËÀÍö¹ÖÎï
-		for(Enemy& enemy : enemyList){
-			if (enemy.status == 1) {
-				if(enemy.changeTime > 15){
+		//æ€ªç‰©å‰è¿›ã€æ›´æ–°åŠ¨ç”»
+		std::erase_if(enemyList, [](const Enemy& enemy) { return enemy.status == Enemy::Status::dead; });//åˆ é™¤æ­»äº¡æ€ªç‰©
+		for (Enemy& enemy : enemyList) {
+			if (enemy.status == Enemy::Status::alive) {
+				if (enemy.changeTime > 15) {
 					enemy.changeTime = 0;
 					enemy.frame = (enemy.frame + 1) % enemy.def->moveFrames.size();
 				}
-				else{
+				else {
 					enemy.changeTime++;
 				}
 				Vector2 direction = { player.getPosition().x - enemy.position.x, player.getPosition().y - enemy.position.y };
@@ -166,37 +162,34 @@ public:
 				}
 				enemy.direction = direction;
 				enemy.position = Vector2Add(enemy.position, direction);
-				if(direction.x > 0.0f){
+				if (direction.x > 0.0f) {
 					enemy.towards = true;
 				}
-				else if(direction.x < 0.0f){
+				else if (direction.x < 0.0f) {
 					enemy.towards = false;
 				}
 			}
-			else if(enemy.status == 2){	//dying
-				if(enemy.changeTime > 2){
+			else if (enemy.status == Enemy::Status::dying) {	//dying
+				if (enemy.changeTime > 2) {
 					enemy.changeTime = 0;
 					enemy.frame++;
 				}
-				else{
+				else {
 					enemy.changeTime++;
 				}
-				if(enemy.frame == enemy.def->deathFrames.size()){
-					enemy.status = 0;
+				if (enemy.frame == enemy.def->deathFrames.size()) {
+					enemy.status = Enemy::Status::dead;
 				}
 			}
 		}
-		std::sort(enemyList.begin(), enemyList.end(), [](const Enemy& a, const Enemy& b) {
-			return a.position.y < b.position.y;
-			});//°´y×ø±êÅÅĞò£¬±£Ö¤»æÖÆË³ĞòÕıÈ·
-		//Ã¿Ö¡ÖØ½¨Åö×²¸ñ×Ó
+		//æ¯å¸§é‡å»ºç¢°æ’æ ¼å­
 		for (auto& row : collideGrid) {
 			for (auto& cell : row) {
 				cell.enemies.clear();
 			}
 		}
 		for (auto& enemy : enemyList) {
-			if (enemy.status != 1) continue;
+			if (enemy.status != Enemy::Status::alive) continue;
 			Vector2 screenPos = GetWorldToScreen2D(enemy.position, camera);
 			for (int i = 0; i < collideGrid.size(); i++) {
 				for (int j = 0; j < collideGrid[i].size(); j++) {
@@ -208,14 +201,14 @@ public:
 				}
 			}
 		}
-		//µĞÈËÅö×²
+		//æ•Œäººç¢°æ’
 		for (auto& gridArray : collideGrid) {
-			for(auto& grid:gridArray){
-				for (int i = 0;i<grid.enemies.size();i++) {
+			for (auto& grid : gridArray) {
+				for (int i = 0; i < grid.enemies.size(); i++) {
 					Enemy& enemy = *grid.enemies[i];
-					if(enemy.status != 1) continue;
+					if (enemy.status != Enemy::Status::alive) continue;
 					auto collideWith = [&enemy](Enemy& otherEnemy) {
-						if (otherEnemy.status != 1) return;
+						if (otherEnemy.status != Enemy::Status::alive) return;
 						if (CheckCollisionCircles(enemy.position, enemy.def->collideRadius, otherEnemy.position, otherEnemy.def->collideRadius)) {
 							Vector2 direction = { enemy.position.x - otherEnemy.position.x, enemy.position.y - otherEnemy.position.y };
 							direction = Vector2Normalize(direction);
@@ -223,16 +216,63 @@ public:
 							otherEnemy.position = Vector2Add(otherEnemy.position, direction * -2.0f);
 						}
 						};
-					//±¾¿éÄÚÅö×²
-					for(int j=i+1;j<grid.enemies.size();j++){
+					//æœ¬å—å†…ç¢°æ’
+					for (int j = i + 1; j < grid.enemies.size(); j++) {
 						collideWith(*grid.enemies[j]);
 					}
-					//ÏàÁÚ¸ñ×ÓÅö×²
+					//ç›¸é‚»æ ¼å­ç¢°æ’
 					forRightDownGrids(static_cast<int>(&grid - &gridArray[0]), static_cast<int>(&gridArray - &collideGrid[0]),
 						collideWith);
 				}
 			}
 		}
+		//æ‰è½ç‰©æ›´æ–°
+		for(auto& pickup : pickupList){
+			pickup->update(player);
+		}
+		//ç©å®¶æ›´æ–°ï¼Œæ£€æŸ¥å—ä¼¤ä¸è‡ªèº«æ›´æ–°
+		float hurtDemage = 0.0f;
+		for(int i=0;i<collideGrid.size();i++){
+			for(int j=0;j<collideGrid[i].size();j++){
+				Vector2 leftTop = collideGrid[i][j].PosLeftTop;
+				Vector2 playerPosition = GetWorldToScreen2D(player.getPosition(), camera);//2Dåæ ‡è½¬æ¢
+				if (playerPosition.x >= leftTop.x && playerPosition.x < leftTop.x + GRID_SIZE &&
+					playerPosition.y >= leftTop.y && playerPosition.y < leftTop.y + GRID_SIZE) {
+					forNearGrids(j, i,
+						[&](Enemy& enemy) {
+							if (enemy.status != Enemy::Status::alive) return;
+							if (CheckCollisionCircles(player.getPosition(), player.collisionRadius, enemy.position, enemy.def->collideRadius)) {
+								hurtDemage = std::max(hurtDemage, enemy.def->power);
+								enemy.position = Vector2Add(enemy.position, Vector2Scale(enemy.direction, -10.0f));//æ¨å¼€æ€ªç‰©
+								}
+							}
+						);
+				}
+			}
+		}
+		player.update(hurtDemage);
+		camera.target = player.getPosition();
+		//æ­¦å™¨æ”»å‡»
+		for(auto& weapon : weaponList){
+			auto& projectiles = weapon->update();
+			for(auto& projectile : projectiles){
+				Vector2 projectilePosition = GetWorldToScreen2D({ projectile->rect.x,projectile->rect.y }, camera);//2Dåæ ‡è½¬æ¢
+				Rectangle projectileRect = { projectilePosition.x,projectilePosition.y,projectile->rect.width,projectile->rect.height };
+				forNearGrids(projectileRect,
+					[&projectile,this](Enemy& enemy) {
+						if (enemy.status != Enemy::Status::alive) return;
+						if (CheckCollisionCircleRec(enemy.position,enemy.def->hurtRadius, projectile->rect)) {
+							if(projectile->attack(enemy)){
+								onEnemyDeath(enemy);
+							}
+						}
+					});
+			}
+		}
+		//æŒ‰yåæ ‡æ’åºï¼Œä¿è¯ç»˜åˆ¶é¡ºåºæ­£ç¡®
+		std::sort(enemyList.begin(), enemyList.end(), [](const Enemy& a, const Enemy& b) {
+			return a.position.y < b.position.y;
+			});
 	}
 	void drawLevel() const {
 		BeginMode2D(camera);
@@ -251,16 +291,20 @@ public:
 					WHITE);
 			}
 		}
+		//draw pickups
+		for(const auto& pickup : pickupList){
+			pickup->draw(window);
+		}
 		//draw enemies
 		for (const auto& enemy : enemyList) {
-			if (enemy.status == 0) continue;
+			if (enemy.status == Enemy::Status::dead) continue;
 			Texture2D texture;
 			Rectangle source;
-			if(enemy.status==1){
+			if(enemy.status==Enemy::Status::alive){
 				texture = *window.getTexture(enemy.def->moveFrames[enemy.frame]).sprite;
 				source = window.getTexture(enemy.def->moveFrames[enemy.frame]).source;
 			}
-			else if(enemy.status==2){
+			else if(enemy.status==Enemy::Status::dying){
 				texture = *window.getTexture(enemy.def->deathFrames[enemy.frame]).sprite;
 				source = window.getTexture(enemy.def->deathFrames[enemy.frame]).source;
 			}
@@ -277,6 +321,7 @@ public:
 		}
 		//draw player
 		player.drawPlayer(window);
+		player.drawHealthBar();
 		//draw weapons
 		for (const auto& weapon : weaponList) {
 			weapon->draw();
@@ -288,6 +333,7 @@ public:
 		DrawText(TextFormat("Player: %.1f, %.1f",
 			player.getPosition().x, player.getPosition().y),
 			10, 30, 20, RED);
-		//
+		//ç»˜åˆ¶ç»éªŒæ¡
+		player.drawExpBar(window);//æˆ‘ä¹Ÿä¸çŸ¥é“ä¸ºå•¥æ”¾è¿›playeré‡Œäº†
 	}
 };

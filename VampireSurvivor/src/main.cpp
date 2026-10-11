@@ -1,4 +1,4 @@
-#include "raylib.h"
+﻿#include "raylib.h"
 #include "window.hpp"
 #include "level.hpp"
 int main() {
@@ -12,6 +12,7 @@ int main() {
 	window.loadTemporaryTexture("garlic_effect", "./resources/img/garlic_effect.png");
 	window.loadSpriteSet("./resources/img/ai_monster.png", "./resources/img/ai_monster.tpsheet");
 	window.loadSpriteSet("./resources/img/tjr.png", "./resources/img/tjr.tpsheet");
+	window.loadSpriteSet("./resources/img/pick_up.png", "./resources/img/pick_up.tpsheet");
 	Player player;
 	GameLevel level(window, player);
 	while(!WindowShouldClose()){

@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 #include <vector>
 #include <string>
 struct PlayerStats {
-	float maxHealth = 10000.0f;
+	float maxHealth = 1.0f;
 	float recovery = 0.0f;
 	int armor = 0;
 	float moveSpeed = 1.0f;
@@ -15,7 +15,7 @@ struct PlayerStats {
 	float cooldown = 1.0f;
 	int amount = 2;
 	int revival = 0;
-	float magnet = 1.0f;
+	float magnet = 2.0f;
 
 	float luck = 0.0f;
 	float growth = 1.0f;

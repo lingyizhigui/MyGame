@@ -1,29 +1,24 @@
-#pragma once
+ï»¿#pragma once
 #include "raylib.h"
 #include "raymath.h"
 #include "common.hpp"
 #include "enemy.hpp"
 #include "window.hpp"
 #include <algorithm>
-//»ùÀà
+//åŸºç±»
 class Projectile {
 public:
 	Rectangle rect;
 	float demage = 1;
 	float pushBack = 1;
-	virtual void attackDef(Enemy& enemy) = 0;
 	Projectile(Rectangle _rect, float _damage, float _pushBack) :
 		rect(_rect), demage(_damage), pushBack(_pushBack) {
 	};
-	~Projectile() = default;
-	void attack(Enemy& enemy) {
-		if (enemy.status != 1) return;
-		attackDef(enemy);
-		if (enemy.health <= 0) {
-			enemy.status = 2;	//dying
-			enemy.frame = 0;
-			enemy.changeTime = 0;
-		}
+	virtual ~Projectile() = default;
+	virtual bool attackDef(Enemy& enemy) = 0;
+	bool attack(Enemy& enemy) {
+		if (enemy.status != Enemy::Status::alive) return false;
+		return attackDef(enemy);
 	}
 };
 class BaseWeapon {
@@ -49,14 +44,14 @@ public:
 	virtual void levelup() = 0;
 	virtual void draw() = 0;
 };
-//Éñ±Ş
+//ç¥é­
 class WeaponWhip : public BaseWeapon {
 private:
 	int defultWidth = 256;
 	int defultHeight = 128;
 	static constexpr int partTimeGenerate = 8;
 	int projectileAmount = 1;
-	//Éñ±ŞÁ£×Ó
+	//ç¥é­ç²’å­
 	class WhipProjectile : public Projectile
 	{
 	public:
@@ -69,11 +64,11 @@ private:
 			Projectile(_rect, _damage, DefaultPushBack), 
 			rotated(_rotated), towards(_towards) {
 		};
-		void attackDef(Enemy& enemy) override {
-			if (existTime != MaxExistTime / 2) return;	//Ö»Ôì³ÉÒ»´ÎÉËº¦
-			enemy.health -= demage;
+		bool attackDef(Enemy& enemy) override {
+			if (existTime != MaxExistTime / 2) return false;	//åªé€ æˆä¸€æ¬¡ä¼¤å®³
 			Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
 			enemy.position = Vector2Add(enemy.position, direction);
+			return enemy.takeDemage(demage);
 		}
 	};
 public:
@@ -85,14 +80,14 @@ public:
 		projectileAmount = 1 + stats.amount;
 	};
 	const std::vector<std::unique_ptr<Projectile>>& update() override {
-		//ÀäÈ´½×¶Î
+		//å†·å´é˜¶æ®µ
 		if (coolTime > 0) {
 			coolTime--;
 			if (coolTime == 0) {
-				coolTime = projectileAmount * -partTimeGenerate;//×¢ÒâÓÃ¸ºÊı±íÊ¾·¢Éä½×¶Î
+				coolTime = projectileAmount * -partTimeGenerate;//æ³¨æ„ç”¨è´Ÿæ•°è¡¨ç¤ºå‘å°„é˜¶æ®µ
 			}
 		}
-		//·¢Éä½×¶Î
+		//å‘å°„é˜¶æ®µ
 		else {
 			coolTime++;
 			int projectileIndex = (coolTime - projectileAmount * -partTimeGenerate) / partTimeGenerate;
@@ -111,7 +106,7 @@ public:
 				coolTime = cooldown;
 			}
 		}
-		//·ÉÉäÎï¸üĞÂ
+		//é£å°„ç‰©æ›´æ–°
 		for (auto& projectilePtr : projectiles) {
 			WhipProjectile* whipProjectilePtr = static_cast<WhipProjectile*>(projectilePtr.get());
 			whipProjectilePtr->existTime--;
