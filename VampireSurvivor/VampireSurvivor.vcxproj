@@ -135,6 +135,7 @@
     <ClInclude Include="src\include\pickup.hpp" />
     <ClInclude Include="src\include\player.hpp" />
     <ClInclude Include="src\include\level.hpp" />
+    <ClInclude Include="src\include\ui.hpp" />
     <ClInclude Include="src\include\weapon.hpp" />
     <ClInclude Include="src\include\window.hpp" />
   </ItemGroup>

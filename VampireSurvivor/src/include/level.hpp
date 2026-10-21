@@ -5,14 +5,22 @@
 #include "weapon.hpp"
 #include "pickup.hpp"
 #include "window.hpp"
+#include "ui.hpp"
 #include "raymath.h"
 class GameLevel {
 	static constexpr int ENEMY_WAVE_COUNT = 20;
 	const Window& window;
 	EnemyGenerator generator;
+
+	int gameTime = 0;
+	uint64_t enemyIdCounter = 0;
 	std::vector<Enemy> enemyList;
-	std::vector<std::unique_ptr<BaseWeapon>> weaponList;
+	//std::vector<Enemy*> sortedEnemyList;	//指针数组，按y排序便于绘制
+	std::vector<std::unique_ptr<BaseWeapon>> allWeapons;
+	std::vector<std::unique_ptr<PassiveItem>> allPassives;
 	std::vector<std::unique_ptr<Pickup>> pickupList;
+	std::unique_ptr<Panel> panel = nullptr;
+	int levelupCount = 0;
 	Player& player;
 	Camera2D camera;
 	static constexpr int GRID_SIZE = 128;
@@ -74,6 +82,76 @@ class GameLevel {
 		int expDrop = enemy.def->expDrop;
 		pickupList.emplace_back(std::make_unique<ExperienceGem>(enemy.position, expDrop));//掉落经验宝石
 	}
+	//升级抽取
+	std::array<BaseItem*, 4> selectLevelup(char itemCount) {
+		constexpr int MaxWeaponCount = 6;
+		constexpr int MaxPassiveCount = 6;
+		std::array<BaseItem*, 4> forPanel = { nullptr };
+		std::vector<BaseItem*> canLevelupWeapons;
+		std::vector<BaseItem*> canLevelupPassives;
+		std::vector<BaseItem*> canLevelupOwns;
+		std::vector<BaseItem*> ownedWeapons;
+		std::vector<BaseItem*> ownedPassives;
+		for (const auto& weapon : allWeapons) {
+			if (weapon->canLevelup()) {
+				canLevelupWeapons.push_back(weapon.get());
+			}
+			if (weapon->getLevel() > 0) {
+				ownedWeapons.push_back(weapon.get());
+			}
+			if (weapon->getLevel() > 0 && weapon->canLevelup()) {
+				canLevelupOwns.push_back(weapon.get());
+			}
+		}
+		for (const auto& passive : allPassives) {
+			if (passive->canLevelup()) {
+				canLevelupPassives.push_back(passive.get());
+			}
+			if (passive->getLevel() > 0) {
+				ownedPassives.push_back(passive.get());
+			}
+			if (passive->getLevel() > 0 && passive->canLevelup()) {
+				canLevelupOwns.push_back(passive.get());
+			}
+		}
+		if (ownedWeapons.size() >= MaxWeaponCount) {
+			std::erase_if(canLevelupWeapons, [](BaseItem* item) { return item->getLevel() == 0; });
+		}
+		if (ownedPassives.size() >= MaxPassiveCount) {
+			std::erase_if(canLevelupPassives, [](BaseItem* item) { return item->getLevel() == 0; });
+		}
+		for (char i = 0; i < itemCount; i++) {
+			if (canLevelupPassives.empty() && canLevelupWeapons.empty()) {
+				break;
+			}
+			//算法源自原版，前两抽优先已获得物品
+			if (i == 0 || i == 1) {
+				if (!canLevelupOwns.empty()) {
+					double probability = 1 - 1.0 / player.getStats().luck + 0.3 * (1 + player.getLevel() % 2);
+					probability = std::clamp(probability, 0.0, 1.0);
+					if (bernoulli(probability)) {
+						BaseItem* ownedTry = canLevelupOwns[GetRandomValue(0, canLevelupOwns.size() - 1)];
+						forPanel[i] = ownedTry;
+						std::erase(canLevelupOwns, ownedTry);
+						std::erase(canLevelupWeapons, ownedTry);
+						std::erase(canLevelupPassives, ownedTry);
+						continue;
+					}
+				}
+			}
+			//如没有抽到或是后两抽，则从全部池中抽取
+			BaseItem* selectedItem = nullptr;
+			if (!canLevelupWeapons.empty() && (canLevelupPassives.empty() || GetRandomValue(0, 1) == 0))
+				selectedItem = canLevelupWeapons[GetRandomValue(0, canLevelupWeapons.size() - 1)];
+			else
+				selectedItem = canLevelupPassives[GetRandomValue(0, canLevelupPassives.size() - 1)];
+			forPanel[i] = selectedItem;
+			std::erase(canLevelupWeapons, selectedItem);
+			std::erase(canLevelupPassives, selectedItem);
+			std::erase(canLevelupOwns, selectedItem);
+		}
+		return forPanel;
+	}
 public:
 	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/enemies.json"), player(_player),
 		camera({
@@ -81,14 +159,24 @@ public:
 			{0,0},// target
 			0.0f,// rotation
 			1.0f// zoom
-			})
-	{
+			}){
 		enemyList.reserve(100);
-		weaponList.emplace_back(std::make_unique<WeaponWhip>(window, player.getStats(), player.getPosition(), player.getTowards()));
+		//weaponList.emplace_back(std::make_unique<WeaponGarlic>(window, player.getStats(), player.getPosition(), player.getTowards()));
+		//weaponList.emplace_back(std::make_unique<WeaponWhip>(window, player.getStats(), player.getPosition(), player.getTowards()));
 		for(int i=0;i<collideGrid.size();i++){
 			for(int j=0;j<collideGrid[i].size();j++){
 				collideGrid[i][j].PosLeftTop = { float((j - 1) * GRID_SIZE), float((i - 1) * GRID_SIZE) };
 			}
+		}
+		//初始化全部武器，主动和被动
+		auto& weaponGen = getWeaponRegisterPool();
+		for(auto& createFunc: weaponGen) {
+			allWeapons.emplace_back(createFunc(window, player.getStats(), player.getPosition(), player.getTowards()));
+			allWeapons.back()->levelup();	//初始化为1级
+		}
+		for(int i=0;i<static_cast<int>(PlayerStatsEnum::SizeOfEnum);i++){
+			PlayerStatsEnum kind = static_cast<PlayerStatsEnum>(i);
+			allPassives.emplace_back(std::make_unique<PassiveItem>(window, kind, player.getStats()));
 		}
 	}
 	void update() {
@@ -102,20 +190,20 @@ public:
 			return;
 		}
 		if(gameState == GameState::choosing) {
-			if(IsKeyPressed(KEY_ESCAPE)) {
+			LevelupPanel* levelupPanel = static_cast<LevelupPanel*>(panel.get());
+			BaseItem* weapon = levelupPanel->update();
+			if (weapon != nullptr) {
+				weapon->levelup();
+				panel.reset();
 				gameState = GameState::Playing;
 			}
 			return;
-		}
-		//调试
-		if(IsKeyDown(KEY_SPACE)){
-			//enemyList.push_back(generator.spawn("basalt_golem", { 100.0f,100.0f }));
-			player.levelUP();
 		}
 		if(IsKeyPressed(KEY_ESCAPE)) {
 			gameState = GameState::paused;
 			return;
 		}
+		gameTime++;
 		//怪物波次生成
 		if (IsKeyPressed(KEY_E)) {
 			for (int enemySpawn = 0; enemySpawn < ENEMY_WAVE_COUNT; enemySpawn++) {
@@ -141,7 +229,7 @@ public:
 					x = player.getPosition().x - gameWidth + r - gameHeight * 3 - gameWidth * 1.5f;
 					y = player.getPosition().y - gameHeight + GetRandomValue(-area, area);
 				}
-				enemyList.push_back(generator.spawn("basalt_golem", { float(x),float(y) }));
+				enemyList.push_back(generator.spawn("basalt_golem", { float(x),float(y) }, enemyIdCounter++));
 			}
 		}
 		//怪物前进、更新动画
@@ -226,9 +314,22 @@ public:
 				}
 			}
 		}
-		//掉落物更新
-		for(auto& pickup : pickupList){
-			pickup->update(player);
+		//掉落物更新，升级事件也在这里
+		PickupResult result;
+		for (auto& pickup : pickupList) {
+			const PickupResult res = pickup->update(player);
+			if (res.playerLevelupCount > 0) {
+				result.playerLevelupCount += res.playerLevelupCount;
+			}
+		}
+		std::erase_if(pickupList, [](const std::unique_ptr<Pickup>& pickup) { return !pickup->isAlive(); });
+		if(result.playerLevelupCount > 0) {
+			levelupCount += result.playerLevelupCount;
+			char choosenCount = 3;
+			double chanceToGetFourth = 1.0 - 1.0 / player.getStats().luck;
+			if (bernoulli(chanceToGetFourth)) choosenCount += 1;
+			panel = std::make_unique<LevelupPanel>(selectLevelup(choosenCount));
+			gameState = GameState::choosing;
 		}
 		//玩家更新，检查受伤与自身更新
 		float hurtDemage = 0.0f;
@@ -253,7 +354,8 @@ public:
 		player.update(hurtDemage);
 		camera.target = player.getPosition();
 		//武器攻击
-		for(auto& weapon : weaponList){
+		for(auto& weapon : allWeapons){
+			if (weapon->getLevel() == 0) continue;
 			auto& projectiles = weapon->update();
 			for(auto& projectile : projectiles){
 				Vector2 projectilePosition = GetWorldToScreen2D({ projectile->rect.x,projectile->rect.y }, camera);//2D坐标转换
@@ -261,7 +363,7 @@ public:
 				forNearGrids(projectileRect,
 					[&projectile,this](Enemy& enemy) {
 						if (enemy.status != Enemy::Status::alive) return;
-						if (CheckCollisionCircleRec(enemy.position,enemy.def->hurtRadius, projectile->rect)) {
+						if (projectile->checkCollision(enemy)) {
 							if(projectile->attack(enemy)){
 								onEnemyDeath(enemy);
 							}
@@ -323,17 +425,32 @@ public:
 		player.drawPlayer(window);
 		player.drawHealthBar();
 		//draw weapons
-		for (const auto& weapon : weaponList) {
+		for (const auto& weapon : allWeapons) {
+			if (weapon->getLevel() == 0) continue;
 			weapon->draw();
 		}
 		EndMode2D();
 		//over
 		//draw level information
-		DrawFPS(0, 0);
-		DrawText(TextFormat("Player: %.1f, %.1f",
-			player.getPosition().x, player.getPosition().y),
-			10, 30, 20, RED);
+		DrawFPS(0, 700);
+		//游戏时钟
+		{
+			int seconds = gameTime / 60;
+			int minutes = seconds / 60;
+			seconds = seconds % 60;
+			std::string time = std::format("{:02d} : {:02d}", minutes, seconds);
+			const int timeTopMargin = 40;
+			const int timeHeight = 64;
+			DrawTextEx(window.getFont(timeHeight),
+				time.c_str(),
+				{ 1280 / 2.0f - MeasureTextEx(window.getFont(timeHeight), time.c_str(), timeHeight, 0.0f).x / 2.0f, static_cast<float>(timeTopMargin) },
+				timeHeight, 0.0f, WHITE);
+		}
 		//绘制经验条
 		player.drawExpBar(window);//我也不知道为啥放进player里了
+		//绘制面板
+		if(panel!=nullptr){
+			panel->draw();
+		}
 	}
 };

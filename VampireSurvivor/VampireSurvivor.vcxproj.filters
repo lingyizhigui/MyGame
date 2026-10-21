@@ -41,5 +41,8 @@
     <ClInclude Include="src\include\pickup.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\include\ui.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

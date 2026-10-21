@@ -2,9 +2,11 @@
 #include "raylib.h"
 #include <string>
 #include <unordered_map>
+#include <map>
 #include <vector>
 #include <set>
 #include <fstream>
+#include <random>
 #include "json.hpp"
 struct DrawFromSpriteSet{
 	Rectangle source;
@@ -17,6 +19,7 @@ struct IntVector2 {
 class SoundPool {
 private:
 	std::vector<Sound> soundList;
+	int index = 0;
 public:
 	SoundPool(std::string path, int n = 4) {
 		soundList.reserve(n);
@@ -25,7 +28,6 @@ public:
 		}
 	}
 	void play() {
-		static int index = 0;
 		index = (index + 1) % soundList.size();
 		PlaySound(soundList[index]);
 	}
@@ -45,11 +47,37 @@ private:
 	const std::string title;
 	int fps = 60;
 	RenderTexture canvas;
-	Font cnFont;
+	std::map<int, Font> fonts;
 	std::unordered_map<std::string, Music> musicMap;
 	std::unordered_map<std::string, SoundPool> soundMap;
 	std::unordered_map<std::string, Texture2D> spriteMap;
 	std::unordered_map<std::string, DrawFromSpriteSet> textureDrawMap;	//只知道名字就能绘制贴图，无需关心具体精灵图
+	//加载某大小中文字体
+	Font loadCnFont(int fontSize) {
+		std::set<int> codepointsSet;
+		std::string usedCharacters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()-_=+[]{};:'\",.<>/?\\|`~ "
+			"等级：升级武器神鞭选择升级的物品"
+			"增加最大生命值增加生命回复速度减少受到的伤害增加移动速度增加武器伤害增加投射物速度增加投射物持续时间增加投射物范围减少武器冷却时间增加投射物数量增加复活次数增加拾取范围增加幸运增加经验获取速率增加金币掉落诅咒：增加敌人数量"
+			"向左右两边挥舞，攻击并击退敌人。"
+			"以自己为中心的辐射状区域，伤害一切靠近的敌人"
+			"新物品!！";
+		for(const char* c= usedCharacters.c_str(); *c != '\0'; ){
+			int byte = 0;
+			int codepoint = GetCodepointNext(c, &byte);
+			codepointsSet.insert(codepoint);
+			c += byte;
+		}
+		std::vector<int> codepoints(codepointsSet.begin(), codepointsSet.end());
+		Font cnFont = LoadFontEx(
+			"./resources/fonts/SarasaUiSC-Regular.ttf",
+			fontSize,
+			codepoints.data(),
+			static_cast<int>(codepoints.size())
+		);
+		SetTextureFilter(cnFont.texture, TEXTURE_FILTER_BILINEAR);	//字体用双线性插值，略平滑
+		fonts[fontSize] = cnFont;
+		return cnFont;
+	}
 public:
 	Window(std::string _title) :
 		title(_title) {
@@ -62,34 +90,21 @@ public:
 		SetTargetFPS(fps);
 		SetExitKey(KEY_NULL);
 		canvas = LoadRenderTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
-		//加载中文字体
-		std::set<int> codepointsSet;
-		std::string usedCharacters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()-_=+[]{};:'\",.<>/?\\|`~ \n"
-			"等级：升级武器神鞭";
-		for(const char* c= usedCharacters.c_str(); *c != '\0'; ){
-			int byte = 0;
-			int codepoint = GetCodepointNext(c, &byte);
-			codepointsSet.insert(codepoint);
-			c += byte;
-		}
-		std::vector<int> codepoints(codepointsSet.begin(), codepointsSet.end());
-		cnFont = LoadFontEx(
-			"./resources/fonts/SarasaUiSC-Regular.ttf",
-			25,	//字体大小要匹配显示大小，这个有待解决
-			codepoints.data(),
-			static_cast<int>(codepoints.size())
-		);
-		SetTextureFilter(cnFont.texture, TEXTURE_FILTER_BILINEAR);	//字体用双线性插值，略平滑
+		//默认加载25字体
+		loadCnFont(25);
+		loadCnFont(64);
 	}
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
 	~Window() {
+		for(auto& [size, font] : fonts) {
+			UnloadFont(font);
+		}
 		for (auto& [name, music] : musicMap) {
 			UnloadMusicStream(music);
 		}
-		for (auto& [name, soundPool] : soundMap) {
-			// SoundPool destructor will handle unloading
-		}
+		//虽然soundPool类会自动释放，但是发生在cloaseAudioDevice之后会出错，所以这里手动释放
+		soundMap.clear();
 		for (auto& [name, texture] : spriteMap) {
 			UnloadTexture(texture);
 		}
@@ -103,8 +118,8 @@ public:
 	IntVector2 getCanvasSize() const {
 		return { WINDOW_WIDTH,WINDOW_HEIGHT };
 	}
-	const Font& getFont() const {
-		return cnFont;
+	const Font& getFont(int fontSize = 25) const {
+		return fonts.at(fontSize);
 	}
 	/*
 	void LoadMusic(const std::string& name, const std::string& path) {
@@ -118,7 +133,9 @@ public:
 		std::ifstream file(jsonPath);
 		json jsonData;
 		file >> jsonData;
-		auto [it,_] = spriteMap.emplace(spritePath, LoadTexture(spritePath.c_str()));
+		auto [it, _] = spriteMap.emplace(spritePath, LoadTexture(spritePath.c_str()));	
+		//emplace返回pair<iterator,bool>，其中iterator指向新插入的元素
+		//此处loadTexture无论键是否存在都会调用，且无法删除重复调用的资源，易泄露。但懒得改
 		Texture2D* spritePtr = &(it->second);
 		for (const auto& frame : jsonData["textures"][0]["sprites"]) {
 			std::string name = frame["filename"];
@@ -134,12 +151,12 @@ public:
 		spriteMap.emplace(name, texture);
 		textureDrawMap.emplace(name, DrawFromSpriteSet{ { 0.0f, 0.0f, static_cast<float>(texture.width), static_cast<float>(texture.height) }, &spriteMap.at(name) });
 	}
-	DrawFromSpriteSet getTexture(const std::string& name) const {
+	const DrawFromSpriteSet& getTexture(const std::string& name) const {
 		auto it = textureDrawMap.find(name);
 		if (it != textureDrawMap.end()) {
 			return it->second;
 		}
-		return DrawFromSpriteSet{}; // Return an empty texture if not found
+		assert(false && "Texture not found in textureDrawMap");//不能返回空的DrawFromSpriteSet，因为调用者会直接解引用sprite指针
 	}
 	void beginDrawing() {
 		BeginDrawing();
@@ -159,3 +176,30 @@ public:
 		EndDrawing();
 	}
 };
+//一些通用函数
+inline bool bernoulli(double probability) {
+	static std::mt19937 rng{ std::random_device{}() };
+	bool res = std::bernoulli_distribution(probability)(rng);
+	return res;
+}
+inline std::string specificWidthString(const std::string& str, float width, int fontSize, const Window& window) {
+	std::string result;
+	std::string temp;
+	Font font = window.getFont(fontSize);
+	for(const char* c = str.c_str(); *c != '\0'; ) {
+		int byte = 0;
+		GetCodepointNext(c, &byte);
+		temp.append(c, byte);
+		float textWidth = MeasureTextEx(font, temp.c_str(), fontSize, 0.0f).x;
+		if (textWidth > width && temp.size() > byte) {//防止单个字符过宽导致死循环
+			temp.resize(temp.size() - byte);
+			temp.append("\n");
+			result.append(temp);
+			temp.clear();
+			continue;
+		}
+		c += byte;
+	}
+	result.append(temp);
+	return result;
+}

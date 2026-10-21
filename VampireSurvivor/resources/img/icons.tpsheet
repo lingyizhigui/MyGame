@@ -1,0 +1,317 @@
+{
+  "textures": [
+    {
+      "image": "icons.png",
+      "size": {
+        "w": 1385,
+        "h": 74
+      },
+      "sprites": [
+        {
+          "filename": "recovery",
+          "region": {
+            "x": 5,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "projectileSpeed",
+          "region": {
+            "x": 74,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "revival",
+          "region": {
+            "x": 143,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "strength",
+          "region": {
+            "x": 212,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "area",
+          "region": {
+            "x": 281,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "amount",
+          "region": {
+            "x": 350,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Laser_icon",
+          "region": {
+            "x": 419,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "armor",
+          "region": {
+            "x": 488,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "cooldown",
+          "region": {
+            "x": 557,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "curse",
+          "region": {
+            "x": 626,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Garlic_icon",
+          "region": {
+            "x": 695,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "duration",
+          "region": {
+            "x": 764,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "greed",
+          "region": {
+            "x": 833,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "growth",
+          "region": {
+            "x": 902,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Whip_icon",
+          "region": {
+            "x": 971,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Hammer_icon",
+          "region": {
+            "x": 1040,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "luck",
+          "region": {
+            "x": 1109,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "magnet",
+          "region": {
+            "x": 1178,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "maxHealth",
+          "region": {
+            "x": 1247,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "moveSpeed",
+          "region": {
+            "x": 1316,
+            "y": 5,
+            "w": 64,
+            "h": 64
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "version": "1.0.0",
+    "format": "RGBA8888"
+  }
+}

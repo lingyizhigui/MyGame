@@ -26,6 +26,7 @@ private:
 	float maxHealth;
 	float health;
 	float experience = 0.0f;
+	float coin = 0.0f;
 	unsigned int level = 1;
 	char invincibleTime = 0;
 	PlayerStatus status = Normal;
@@ -101,7 +102,9 @@ public:
 	PlayerStatus getStatus() const { return status; }
 	float getHealth() const { return health; }
 	const PlayerStats& getStats() const { return stats; }
+	PlayerStats& getStats() { return stats; }
 	const bool& getTowards() const { return towards; }
+	const unsigned int& getLevel() const { return level; }
 public:
 	Player() : maxHealth((DefaultMaxHealth+maxHealthBonus)*stats.maxHealth), health(maxHealth) {};
 	void updateBloodParticles() {
@@ -199,13 +202,14 @@ public:
 		float expRatio = experience / expToNextLevel();
 		DrawRectangle(boarderThickness, topMargin + boarderThickness, barWidth * expRatio, barHeight, BLUE);
 		std::string levelText = std::format("等级：{}  ", level);	
-		DrawTextEx(window.getFont(),
+		Font font = window.getFont(boarderHeight);
+		DrawTextEx(font,
 			levelText.c_str(),
-			{ boarderWidth - boarderThickness - MeasureTextEx(window.getFont(),levelText.c_str(),boarderHeight,3.0f).x, static_cast<float>(topMargin) },
+			{ boarderWidth - boarderThickness - MeasureTextEx(font,levelText.c_str(),boarderHeight,3.0f).x, static_cast<float>(topMargin) },
 			boarderHeight, 3.0f, WHITE);
 	}
 	//状态改变函数
-	int getExp(int exp) {
+	int gainExp(int exp) {
 		int changedLevel = 0;
 		experience += exp * stats.growth;
 		while (experience >= expToNextLevel()) {
@@ -214,6 +218,13 @@ public:
 			changedLevel++;
 		}
 		return changedLevel;
+	}
+	void Heal(float heal) {
+		health += heal;
+		if (health > maxHealth) health = maxHealth;
+	}
+	void gainCoin(int amount) {
+		coin += static_cast<float>(amount) * stats.greed;
 	}
 	//调试
 	void levelUP() {

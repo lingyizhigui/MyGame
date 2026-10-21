@@ -44,10 +44,11 @@ public:
 };
 struct Enemy {
 	const EnemyDef* def;
+	uint64_t id;
 	Vector2 position;
 	Vector2 direction = {0.0f, 0.0f};
 //private:	//督促使用takeDemage函数来减少血量
-	int health;
+	float health;
 public:
 	bool towards;	// true: right, false: left
 	//char status;	//0:dead, 1:alive,2:dying,
@@ -103,10 +104,11 @@ public:
 			deathFrames.clear();
 		}
 	}
-	Enemy spawn(std::string _enemyName,Vector2 _positon) {
+	Enemy spawn(std::string _enemyName,Vector2 _positon, uint64_t _id) {
 		const EnemyDef& def = enemyDefs.at(_enemyName);
 		Enemy e{
 			&def,
+			_id,
 			_positon,
 			{0.0f, 0.0f},
 			static_cast<int>(def.maxHealth),

@@ -13,6 +13,7 @@ int main() {
 	window.loadSpriteSet("./resources/img/ai_monster.png", "./resources/img/ai_monster.tpsheet");
 	window.loadSpriteSet("./resources/img/tjr.png", "./resources/img/tjr.tpsheet");
 	window.loadSpriteSet("./resources/img/pick_up.png", "./resources/img/pick_up.tpsheet");
+	window.loadSpriteSet("./resources/img/icons.png", "./resources/img/icons.tpsheet");
 	Player player;
 	GameLevel level(window, player);
 	while(!WindowShouldClose()){
