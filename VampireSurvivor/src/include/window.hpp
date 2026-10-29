@@ -12,6 +12,10 @@ struct DrawFromSpriteSet{
 	Rectangle source;
 	Texture2D* sprite;
 };
+struct ViewTransform {
+	float scale;
+	Vector2 offset;
+};
 struct IntVector2 {
 	int x;
 	int y;
@@ -42,11 +46,10 @@ public:
 class Window {
 	using json = nlohmann::json;
 private:
-	static constexpr int WINDOW_WIDTH = 1280;
-	static constexpr int WINDOW_HEIGHT = 720;
+	static constexpr int WINDOW_WIDTH = 1280;	//约定
+	static constexpr int WINDOW_HEIGHT = 720;	//约定
 	const std::string title;
 	int fps = 60;
-	RenderTexture canvas;
 	std::map<int, Font> fonts;
 	std::unordered_map<std::string, Music> musicMap;
 	std::unordered_map<std::string, SoundPool> soundMap;
@@ -89,7 +92,6 @@ public:
 		InitAudioDevice();
 		SetTargetFPS(fps);
 		SetExitKey(KEY_NULL);
-		canvas = LoadRenderTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
 		//默认加载25字体
 		loadCnFont(25);
 		loadCnFont(64);
@@ -108,15 +110,14 @@ public:
 		for (auto& [name, texture] : spriteMap) {
 			UnloadTexture(texture);
 		}
-		UnloadRenderTexture(canvas);
 		CloseAudioDevice();
 		CloseWindow();
 	}
 	Vector2 getCenter() const {
 		return { static_cast<float>(WINDOW_WIDTH) / 2.0f, static_cast<float>(WINDOW_HEIGHT) / 2.0f };
 	}
-	IntVector2 getCanvasSize() const {
-		return { WINDOW_WIDTH,WINDOW_HEIGHT };
+	IntVector2 getSize() const {
+		return { WINDOW_WIDTH, WINDOW_HEIGHT };
 	}
 	const Font& getFont(int fontSize = 25) const {
 		return fonts.at(fontSize);
@@ -157,22 +158,29 @@ public:
 			return it->second;
 		}
 		assert(false && "Texture not found in textureDrawMap");//不能返回空的DrawFromSpriteSet，因为调用者会直接解引用sprite指针
+		return {};	//release模式报错，不得不
 	}
-	void beginDrawing() {
-		BeginDrawing();
-		ClearBackground(BLACK);
-		BeginTextureMode(canvas);
-		ClearBackground(RAYWHITE);
-	}
-	void endDrawing() {
-		EndTextureMode();
+	ViewTransform getViewTransform() const {
 		float sizeX = static_cast<float>(GetScreenWidth()) / WINDOW_WIDTH;
 		float sizeY = static_cast<float>(GetScreenHeight()) / WINDOW_HEIGHT;
 		float size = std::min(sizeX, sizeY);
-		DrawTexturePro(canvas.texture, { 0.0f, 0.0f, static_cast<float>(WINDOW_WIDTH), -static_cast<float>(WINDOW_HEIGHT) },
-			{ GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f, WINDOW_WIDTH * size, WINDOW_HEIGHT * size},
-			{ WINDOW_WIDTH*size/2.0f,  WINDOW_HEIGHT*size/2.0f }, 
-			0.0f, WHITE);
+		Vector2 offset = { (GetScreenWidth() - WINDOW_WIDTH * size) / 2.0f, (GetScreenHeight() - WINDOW_HEIGHT * size) / 2.0f };
+		return { size, offset };
+	}
+	void beginDrawing() const{
+		BeginDrawing();
+		ClearBackground(RAYWHITE);
+	}
+	void endDrawing() const{
+		auto [scale, offset] = getViewTransform();
+		int left = static_cast<int>(std::ceil(offset.x));
+		int top = static_cast<int>(std::ceil(offset.y));
+		int right = static_cast<int>(std::floor(offset.x + WINDOW_WIDTH * scale));
+		int bottom = static_cast<int>(std::floor(offset.y + WINDOW_HEIGHT * scale));
+		DrawRectangle(0, 0, left, GetScreenHeight(), BLACK);
+		DrawRectangle(0, 0, GetScreenWidth(), top, BLACK);
+		DrawRectangle(right, 0,GetScreenWidth() - right, GetScreenHeight(), BLACK);
+		DrawRectangle(0, bottom,GetScreenWidth(), GetScreenHeight() - bottom, BLACK);
 		EndDrawing();
 	}
 };

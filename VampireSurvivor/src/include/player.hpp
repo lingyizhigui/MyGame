@@ -19,7 +19,7 @@ private:
 	static constexpr int BLOOD_PARTICLE_COUNT = 128;
 	static constexpr int DefaultMaxHealth = 100;
 	PlayerStats stats;
-	Vector2 displaySize = { 96.0f, 96.0f };
+	static constexpr Vector2 displaySize = { 64.0f, 64.0f };
 	Vector2 position = {0.0f, 0.0f};
 	//一些游玩状态
 	static constexpr int maxHealthBonus = 1000;

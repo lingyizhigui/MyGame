@@ -1,14 +1,14 @@
 {
   "textures": [
     {
-      "image": "ai.png",
+      "image": "tjr.png",
       "size": {
         "w": 1049,
         "h": 266
       },
       "sprites": [
         {
-          "filename": "tjr_4",
+          "filename": "tjr_1",
           "region": {
             "x": 5,
             "y": 5,
@@ -23,7 +23,7 @@
           }
         },
         {
-          "filename": "tjr_2",
+          "filename": "tjr_3",
           "region": {
             "x": 266,
             "y": 5,
@@ -38,7 +38,7 @@
           }
         },
         {
-          "filename": "tjr_3",
+          "filename": "tjr_2",
           "region": {
             "x": 527,
             "y": 5,
@@ -53,7 +53,7 @@
           }
         },
         {
-          "filename": "tjr_1",
+          "filename": "tjr_4",
           "region": {
             "x": 788,
             "y": 5,

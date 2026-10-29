@@ -8,10 +8,15 @@
         "tjr_3",
         "tjr_4"
       ],
-      "death_frames": [],
-      "health": null,
+      "death_frames": [
+        "tjr_1"
+      ],
+      "health": 50,
       "power": null,
-      "speed": null
+      "speed": null,
+      "width": 256,
+      "height": 256
     }
+
   ]
 }

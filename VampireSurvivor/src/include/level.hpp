@@ -3,6 +3,7 @@
 #include "player.hpp"
 #include "enemy.hpp"
 #include "weapon.hpp"
+#include "passive.hpp"
 #include "pickup.hpp"
 #include "window.hpp"
 #include "ui.hpp"
@@ -17,12 +18,13 @@ class GameLevel {
 	std::vector<Enemy> enemyList;
 	//std::vector<Enemy*> sortedEnemyList;	//指针数组，按y排序便于绘制
 	std::vector<std::unique_ptr<BaseWeapon>> allWeapons;
+	std::vector<BaseWeapon*> ownedWeapons;
 	std::vector<std::unique_ptr<PassiveItem>> allPassives;
+	std::vector<PassiveItem*> ownedPassives;
 	std::vector<std::unique_ptr<Pickup>> pickupList;
 	std::unique_ptr<Panel> panel = nullptr;
 	int levelupCount = 0;
 	Player& player;
-	Camera2D camera;
 	static constexpr int GRID_SIZE = 128;
 	enum class GameState {
 		Playing,
@@ -30,6 +32,27 @@ class GameLevel {
 		choosing,
 		GameOver
 	} gameState = GameState::Playing;
+	//Camera相关
+	Camera2D camera;
+	Camera2D getUICamera() const {
+		auto [scale, offset] = window.getViewTransform();
+		Camera2D uiCamera = {
+			.offset = offset,
+			.target = {0.0f, 0.0f},
+			.rotation = 0.0f,
+			.zoom = scale
+		};
+		return uiCamera;
+	}
+	Camera2D getGameCamera() const {
+		auto [scale, offset] = window.getViewTransform();
+		Camera2D gameCamera = camera;
+		gameCamera.offset.x = gameCamera.offset.x * scale + offset.x;
+		gameCamera.offset.y = gameCamera.offset.y * scale + offset.y;
+		gameCamera.zoom *= scale;
+		return gameCamera;
+	}
+	//碰撞网格
 	struct CollideGrid {
 		Vector2 PosLeftTop;
 		std::vector<Enemy*> enemies;
@@ -83,35 +106,31 @@ class GameLevel {
 		pickupList.emplace_back(std::make_unique<ExperienceGem>(enemy.position, expDrop));//掉落经验宝石
 	}
 	//升级抽取
-	std::array<BaseItem*, 4> selectLevelup(char itemCount) {
+	std::array<BaseItem*, 4> selectLevelup() {
+		//高幸运有机会获得第四个选项
+		char itemCount = 3;
+		double chanceToGetFourth = 1.0 - 1.0 / player.getStats().luck;
+		if (bernoulli(chanceToGetFourth)) itemCount += 1;
 		constexpr int MaxWeaponCount = 6;
 		constexpr int MaxPassiveCount = 6;
 		std::array<BaseItem*, 4> forPanel = { nullptr };
 		std::vector<BaseItem*> canLevelupWeapons;
 		std::vector<BaseItem*> canLevelupPassives;
 		std::vector<BaseItem*> canLevelupOwns;
-		std::vector<BaseItem*> ownedWeapons;
-		std::vector<BaseItem*> ownedPassives;
 		for (const auto& weapon : allWeapons) {
 			if (weapon->canLevelup()) {
 				canLevelupWeapons.push_back(weapon.get());
-			}
-			if (weapon->getLevel() > 0) {
-				ownedWeapons.push_back(weapon.get());
-			}
-			if (weapon->getLevel() > 0 && weapon->canLevelup()) {
-				canLevelupOwns.push_back(weapon.get());
+				if (weapon->getLevel() > 0) {
+					canLevelupOwns.push_back(weapon.get());
+				}
 			}
 		}
 		for (const auto& passive : allPassives) {
 			if (passive->canLevelup()) {
 				canLevelupPassives.push_back(passive.get());
-			}
-			if (passive->getLevel() > 0) {
-				ownedPassives.push_back(passive.get());
-			}
-			if (passive->getLevel() > 0 && passive->canLevelup()) {
-				canLevelupOwns.push_back(passive.get());
+				if (passive->getLevel() > 0) {
+					canLevelupOwns.push_back(passive.get());
+				}
 			}
 		}
 		if (ownedWeapons.size() >= MaxWeaponCount) {
@@ -153,7 +172,7 @@ class GameLevel {
 		return forPanel;
 	}
 public:
-	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/enemies.json"), player(_player),
+	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/tjr.json"), player(_player),
 		camera({
 			window.getCenter(),// offset
 			{0,0},// target
@@ -161,8 +180,6 @@ public:
 			1.0f// zoom
 			}){
 		enemyList.reserve(100);
-		//weaponList.emplace_back(std::make_unique<WeaponGarlic>(window, player.getStats(), player.getPosition(), player.getTowards()));
-		//weaponList.emplace_back(std::make_unique<WeaponWhip>(window, player.getStats(), player.getPosition(), player.getTowards()));
 		for(int i=0;i<collideGrid.size();i++){
 			for(int j=0;j<collideGrid[i].size();j++){
 				collideGrid[i][j].PosLeftTop = { float((j - 1) * GRID_SIZE), float((i - 1) * GRID_SIZE) };
@@ -172,11 +189,16 @@ public:
 		auto& weaponGen = getWeaponRegisterPool();
 		for(auto& createFunc: weaponGen) {
 			allWeapons.emplace_back(createFunc(window, player.getStats(), player.getPosition(), player.getTowards()));
-			allWeapons.back()->levelup();	//初始化为1级
+			//测试时期，全部初始化为1级
+			allWeapons.back()->levelup();	
+			ownedWeapons.push_back(allWeapons.back().get());
 		}
 		for(int i=0;i<static_cast<int>(PlayerStatsEnum::SizeOfEnum);i++){
 			PlayerStatsEnum kind = static_cast<PlayerStatsEnum>(i);
 			allPassives.emplace_back(std::make_unique<PassiveItem>(window, kind, player.getStats()));
+			//测试，初始化为一级
+			allPassives.back()->levelup();
+			ownedPassives.push_back(allPassives.back().get());
 		}
 	}
 	void update() {
@@ -191,14 +213,29 @@ public:
 		}
 		if(gameState == GameState::choosing) {
 			LevelupPanel* levelupPanel = static_cast<LevelupPanel*>(panel.get());
-			BaseItem* weapon = levelupPanel->update();
-			if (weapon != nullptr) {
-				weapon->levelup();
+			BaseItem* item = levelupPanel->update();
+			if (item != nullptr) {
+				if (item->getLevel() == 0) {
+					if (auto* weapon = dynamic_cast<BaseWeapon*>(item)) {
+						ownedWeapons.push_back(weapon);
+					}
+					else if (auto* passive = dynamic_cast<PassiveItem*>(item)) {
+						ownedPassives.push_back(passive);
+					}
+				}
+				item->levelup();
 				panel.reset();
-				gameState = GameState::Playing;
+				levelupCount--;
+				if (levelupCount == 0) {
+					gameState = GameState::Playing;
+				}
+				else {
+					panel = std::make_unique<LevelupPanel>(selectLevelup());
+				}
 			}
 			return;
 		}
+		//以下为Playing状态
 		if(IsKeyPressed(KEY_ESCAPE)) {
 			gameState = GameState::paused;
 			return;
@@ -208,8 +245,8 @@ public:
 		if (IsKeyPressed(KEY_E)) {
 			for (int enemySpawn = 0; enemySpawn < ENEMY_WAVE_COUNT; enemySpawn++) {
 				static constexpr int area = 64;
-				int gameWidth = window.getCanvasSize().x;
-				int gameHeight = window.getCanvasSize().y;
+				int gameWidth = window.getSize().x;
+				int gameHeight = window.getSize().y;
 				int r = GetRandomValue(0, gameWidth * 3 + gameHeight * 3);
 				int x = 0;
 				int y = 0;
@@ -229,7 +266,7 @@ public:
 					x = player.getPosition().x - gameWidth + r - gameHeight * 3 - gameWidth * 1.5f;
 					y = player.getPosition().y - gameHeight + GetRandomValue(-area, area);
 				}
-				enemyList.push_back(generator.spawn("basalt_golem", { float(x),float(y) }, enemyIdCounter++));
+				enemyList.push_back(generator.spawn("tjr", { float(x),float(y) }, enemyIdCounter++));
 			}
 		}
 		//怪物前进、更新动画
@@ -325,10 +362,7 @@ public:
 		std::erase_if(pickupList, [](const std::unique_ptr<Pickup>& pickup) { return !pickup->isAlive(); });
 		if(result.playerLevelupCount > 0) {
 			levelupCount += result.playerLevelupCount;
-			char choosenCount = 3;
-			double chanceToGetFourth = 1.0 - 1.0 / player.getStats().luck;
-			if (bernoulli(chanceToGetFourth)) choosenCount += 1;
-			panel = std::make_unique<LevelupPanel>(selectLevelup(choosenCount));
+			panel = std::make_unique<LevelupPanel>(selectLevelup());
 			gameState = GameState::choosing;
 		}
 		//玩家更新，检查受伤与自身更新
@@ -377,13 +411,13 @@ public:
 			});
 	}
 	void drawLevel() const {
-		BeginMode2D(camera);
+		BeginMode2D(getGameCamera());
 		//draw background
 		Vector2 leftTop = GetScreenToWorld2D({ 0,0 }, camera);
 		int xStart = (int)floor(leftTop.x / 64) * 64;
 		int yStart = (int)floor(leftTop.y / 64) * 64;
-		int columns = window.getCanvasSize().x / 64 + 1;
-		int rows = window.getCanvasSize().y / 64 + 2;
+		int columns = window.getSize().x / 64 + 1;
+		int rows = window.getSize().y / 64 + 2;
 		for (int i = 0; i < columns; i++) {
 			for (int j = 0; j < rows; j++) {
 				auto drawSet = window.getTexture("background");
@@ -431,7 +465,8 @@ public:
 		}
 		EndMode2D();
 		//over
-		//draw level information
+		//绘制固定UI
+		BeginMode2D(getUICamera());
 		DrawFPS(0, 700);
 		//游戏时钟
 		{
@@ -446,11 +481,42 @@ public:
 				{ 1280 / 2.0f - MeasureTextEx(window.getFont(timeHeight), time.c_str(), timeHeight, 0.0f).x / 2.0f, static_cast<float>(timeTopMargin) },
 				timeHeight, 0.0f, WHITE);
 		}
-		//绘制经验条
+		//经验条
 		player.drawExpBar(window);//我也不知道为啥放进player里了
+		//已拥有物品
+		{
+			constexpr int Padding = 4;
+			constexpr int MarginTop = 64;
+			constexpr int IconSize = 48;
+			constexpr int Collumns = 6;
+			auto drawItems = [&](const auto& items, int startRow) {
+				int rowCount = startRow;
+				int collumnCount = 0;
+				for (int i = 0; i < items.size() || i < Collumns; i++) {
+					if (i > 0 && i % Collumns == 0) {
+						rowCount++;
+						collumnCount = 0;
+					}
+					Rectangle itemRect = { static_cast<float>(Padding + collumnCount * (IconSize + Padding)),
+						static_cast<float>(MarginTop + rowCount * (IconSize + Padding)),
+						static_cast<float>(IconSize), static_cast<float>(IconSize) };
+					Color color = { 255,255,255,192 };
+					DrawRectangleRec(itemRect, color);
+					if (i < items.size()) {
+						DrawFromSpriteSet drawSet = items[i]->getIconTexture();
+						DrawTexturePro(*drawSet.sprite, drawSet.source, itemRect, { 0,0 }, 0.0f, WHITE);
+					}
+					collumnCount++;
+				}
+				return rowCount + 1; // Return the next row index
+				};
+			int nextRow = drawItems(ownedWeapons, 0);
+			drawItems(ownedPassives, nextRow);
+		}
 		//绘制面板
 		if(panel!=nullptr){
 			panel->draw();
 		}
+		EndMode2D();
 	}
 };

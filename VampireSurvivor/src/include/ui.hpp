@@ -22,6 +22,7 @@ public:
 		Button(const Window& _window,IntVector2 _position, int _width, int _height, Color _backgroundColor) :
 			window(_window), position(_position), width(_width), height(_height), backgroundColor(_backgroundColor) {
 		}
+		virtual ~Button() = default;
 		virtual void drawUnique(int _topMargin, int _leftMargin) const {};
 		void draw(int _topMargin,int _leftMargin) const {
 			Vector2 pos = { static_cast<float>(_leftMargin + position.x),static_cast<float>(_topMargin + position.y) };
@@ -35,6 +36,7 @@ public:
 	std::vector<std::unique_ptr<Button>> buttons;
 	Panel(const Window& _window) : window(_window) {
 	}
+	virtual ~Panel() = default;
 	virtual void drawUnique() const {};
 	void draw() const {
 		DrawRectangle(LeftMargin, TopMargin, width, height, backgroundColor);

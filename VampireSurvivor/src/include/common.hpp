@@ -13,9 +13,9 @@ struct PlayerStats {
 	float area = 1.0f;
 
 	float cooldown = 1.0f;
-	int amount = 2;
+	int amount = 1;
 	int revival = 0;
-	float magnet = 2.0f;
+	float magnet = 1.0f;
 
 	float luck = 100.0f;
 	float growth = 1.0f;
