@@ -10,6 +10,7 @@ int main() {
 	window.loadTemporaryTexture("4", "./resources/4.png");
 	window.loadTemporaryTexture("whip_effect","./resources/img/whip_effect.png");
 	window.loadTemporaryTexture("garlic_effect", "./resources/img/garlic_effect.png");
+	window.loadTemporaryTexture("hammer_effect", "./resources/img/hammer_effect.png");
 	window.loadSpriteSet("./resources/img/ai_monster.png", "./resources/img/ai_monster.tpsheet");
 	window.loadSpriteSet("./resources/img/tjr.png", "./resources/img/tjr.tpsheet");
 	window.loadSpriteSet("./resources/img/pick_up.png", "./resources/img/pick_up.tpsheet");

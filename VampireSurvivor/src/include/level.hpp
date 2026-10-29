@@ -171,6 +171,25 @@ class GameLevel {
 		}
 		return forPanel;
 	}
+	//获得最近的敌人相对位置
+	Vector2 getNearestEnemyDirection() {
+		static int lastCheckTime = 0;
+		static Vector2 nearestDirection = { 0.0f, 0.0f };
+		if(gameTime - lastCheckTime < 5) {
+			return nearestDirection;
+		}
+		lastCheckTime = gameTime;
+		float nearestDistance = std::numeric_limits<float>::infinity();
+		for (const Enemy& enemy : enemyList) {
+			if (enemy.status != Enemy::Status::alive) continue;
+			float distance = Vector2DistanceSqr(player.getPosition(), enemy.position);
+			if (distance < nearestDistance) {
+				nearestDistance = distance;
+				nearestDirection = Vector2Subtract(enemy.position, player.getPosition());
+			}
+		}
+		return nearestDirection;
+	}
 public:
 	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/tjr.json"), player(_player),
 		camera({
@@ -388,9 +407,11 @@ public:
 		player.update(hurtDemage);
 		camera.target = player.getPosition();
 		//武器攻击
-		for(auto& weapon : allWeapons){
-			if (weapon->getLevel() == 0) continue;
-			auto& projectiles = weapon->update();
+		static const WeaponUpdateFunc funcs{
+			.getNearestEnemyDirection = [this]() {return getNearestEnemyDirection(); }
+		};
+		for(auto& weapon : ownedWeapons){
+			auto& projectiles = weapon->update(funcs);
 			for(auto& projectile : projectiles){
 				Vector2 projectilePosition = GetWorldToScreen2D({ projectile->rect.x,projectile->rect.y }, camera);//2D坐标转换
 				Rectangle projectileRect = { projectilePosition.x,projectilePosition.y,projectile->rect.width,projectile->rect.height };

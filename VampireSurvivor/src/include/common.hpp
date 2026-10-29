@@ -9,7 +9,7 @@ struct PlayerStats {
 
 	float strength = 4.0f;
 	float projectileSpeed = 1.0f;
-	float duration = 1.0f;
+	float duration = 1.5f;
 	float area = 1.0f;
 
 	float cooldown = 1.0f;
@@ -73,3 +73,8 @@ inline std::vector<weaponCreateFunc>& getWeaponRegisterPool() {
 inline void registerWeapon(const weaponCreateFunc& weaponCreate) {
 	getWeaponRegisterPool().push_back(weaponCreate);
 }
+//武器更新所需要的注入函数
+struct WeaponUpdateFunc
+{
+	std::function<Vector2()> getNearestEnemyDirection;
+};

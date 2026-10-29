@@ -41,12 +41,49 @@ class BaseWeapon : public BaseItem {
 protected:
 	int DefaultDemage = 1;
 	int DefaultCooldown = 60;
-	int cooldown = DefaultCooldown;
+	int cooldown() { return std::max(5, static_cast<int>(DefaultCooldown * stats.cooldown)); }
 	int coolTime = 0;
 	std::vector<std::unique_ptr<Projectile>> projectiles;
 	const PlayerStats& stats;
 	const Vector2& playerPosition;
 	const bool& playerTowards;
+	//连发管理类，可选
+	class FireManager {
+	private:
+		int fireInterval;
+		int fireCount;
+		int coolDown;
+		int time = 0;
+	public:
+		FireManager(int _fireInterval, int _fireCount, int _coolDown) :
+			fireInterval(_fireInterval), fireCount(_fireCount), coolDown(_coolDown) {
+		};
+		std::optional<int> get() {
+			if (time >= fireCount * fireInterval) {
+				time = -coolDown;
+				return std::nullopt;
+			}
+			else if (time < 0) {
+				time++;
+				return -1;
+			}
+			else if (time % fireInterval == 0) {
+				time++;
+				return time / fireInterval;
+			}
+			else {
+				time++;
+				return -1;
+			}
+		}
+		void reset() {
+			time = 0;
+		}
+		void update(int _fireCount, int _coolDown) {
+			fireCount = _fireCount;
+			coolDown = _coolDown;
+		}
+	};
 	//注册函数，注册武器构造函数到注册池
 	template<typename T>
 	static bool registerThis() {
@@ -67,7 +104,7 @@ public:
 		return window.getTexture(std::string(name) + "_icon");
 	}
 	virtual ~BaseWeapon() = default;
-	virtual const std::vector<std::unique_ptr<Projectile>>& update() = 0;
+	virtual const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc funcs) = 0;
 	virtual void draw() const = 0;
 	
 };
@@ -80,7 +117,8 @@ private:
 	int defaultWidth = 256;
 	int defaultHeight = 128;
 	static constexpr int partTimeGenerate = 8;
-	int projectileAmount = 1;
+	int DefaultProjectileAmount = 1;
+	int projectileAmount() { return DefaultProjectileAmount + stats.amount; }
 	//神鞭粒子
 	class WhipProjectile : public Projectile
 	{
@@ -107,23 +145,19 @@ public:
 			) {
 		DefaultDemage = 10;
 		DefaultCooldown = 60;
-		cooldown = std::max(5, static_cast<int>(DefaultCooldown * stats.cooldown));
-		projectileAmount = 1 + stats.amount;
 	};
-	const std::vector<std::unique_ptr<Projectile>>& update() override {
-		//先根据玩家属性更新自身
-		cooldown = std::max(5, static_cast<int>(DefaultCooldown * stats.cooldown));
+	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc) override {
 		//冷却阶段
 		if (coolTime > 0) {
 			coolTime--;
 			if (coolTime == 0) {
-				coolTime = projectileAmount * -partTimeGenerate;//注意用负数表示发射阶段
+				coolTime = projectileAmount() * -partTimeGenerate;//注意用负数表示发射阶段
 			}
 		}
 		//发射阶段
 		else {
 			coolTime++;
-			int projectileIndex = (coolTime - projectileAmount * -partTimeGenerate) / partTimeGenerate;
+			int projectileIndex = (coolTime - projectileAmount() * -partTimeGenerate) / partTimeGenerate;
 			if (coolTime % partTimeGenerate == 0) {
 				bool rotated = projectileIndex % 2 == 0;
 				Rectangle dest = {playerPosition.x, playerPosition.y, defaultWidth * stats.area, defaultHeight * stats.area};
@@ -136,7 +170,7 @@ public:
 				projectiles.push_back(std::make_unique<WhipProjectile>(dest, damage, rotated, playerTowards));
 			}
 			if (coolTime == 0) {
-				coolTime = cooldown;
+				coolTime = cooldown();
 			}
 		}
 		//飞射物更新
@@ -163,7 +197,7 @@ public:
 		case 0:
 			break;
 		case 1:
-			projectileAmount++;
+			DefaultProjectileAmount++;
 			break;
 		case 2:
 			defaultWidth += 32;
@@ -174,7 +208,7 @@ public:
 			DefaultCooldown -= 10;
 			break;
 		case 4:
-			projectileAmount++;
+			DefaultProjectileAmount++;
 			break;
 		case 5:
 			defaultWidth += 32;
@@ -190,7 +224,6 @@ public:
 		}
 		level++;
 		coolTime = 0;
-		cooldown = std::max(5, static_cast<int>(DefaultCooldown * stats.cooldown));
 	};
 	void draw() const override {
 		for(auto& projectilePtr : projectiles){
@@ -241,18 +274,17 @@ private:
 	};
 public:
 	WeaponGarlic(const Window& _window, const PlayerStats& _stats, const Vector2& _playerPosition, const bool& _playerTowards) :
-		BaseWeapon(_window, "Garlic", _stats, _playerPosition, _playerTowards,
+		BaseWeapon(_window, Name, _stats, _playerPosition, _playerTowards,
 			"以自己为中心的辐射状区域，伤害一切靠近的敌人"
 		) {
 		DefaultDemage = 5;
 		DefaultCooldown = 30;
-		cooldown = std::max(5, static_cast<int>(DefaultCooldown * stats.cooldown));
 		projectiles.reserve(1);
 		float radius = defaultRadius * stats.area;
 		Rectangle rect = { playerPosition.x - radius, playerPosition.y - radius, radius * 2.0f, radius * 2.0f };
-		projectiles.emplace_back(std::make_unique<GarlicProjectile>(rect, DefaultDemage * stats.strength, cooldown, radius));
+		projectiles.emplace_back(std::make_unique<GarlicProjectile>(rect, DefaultDemage * stats.strength, cooldown(), radius));
 	};
-	const std::vector<std::unique_ptr<Projectile>>& update() override {
+	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc) override {
 		//始终只有一个大蒜粒子，更新其位置和属性
 		float radius = defaultRadius * stats.area;
 		Rectangle rect = { playerPosition.x - radius, playerPosition.y - radius, radius * 2.0f, radius * 2.0f };
@@ -297,7 +329,6 @@ public:
 			break;
 		}
 		level++;
-		cooldown = std::max(5, static_cast<int>(DefaultCooldown * stats.cooldown));
 	}
 	void draw() const override {
 		auto& texture = window.getTexture("garlic_effect");
@@ -310,3 +341,157 @@ public:
 		EndBlendMode();
 	}
 };
+//回旋锤子
+class WeaponHammer : public BaseWeapon {
+public:
+	static constexpr std::string_view Name = "Hammer";
+	inline static bool registered = registerThis<WeaponHammer>();
+private:
+	static constexpr int AttackInterval = 10;
+	static constexpr int DefaultSpeed = 6;
+	static constexpr Vector2 DefaultSize = { 65, 104 };
+	static constexpr int DefaultCollideRadius = 32;
+	static constexpr int TotalExistTime = 120;
+	static constexpr int UniformTime = 50;
+	static constexpr int AccelerateTime = (TotalExistTime - 2 * UniformTime) / 2;
+	int DefaultCount = 1;
+	int projectileCount() { return DefaultCount + stats.amount; }
+	float speed() { return DefaultSpeed * stats.projectileSpeed; }
+	Vector2 size() { return Vector2Scale(DefaultSize, stats.area); }
+	float collideRadius() { return DefaultCollideRadius * stats.area; }
+	FireManager fireManager;
+	//回旋锤粒子
+	class HammerProjectile : public Projectile
+	{
+	public:
+		static constexpr int DefaultPushBack = 16;
+		static constexpr int AttackCooldown = 60;
+		int time = 0;
+		int angle = 0;	//角度制
+		const Vector2 CenterOffset;
+		Vector2 velocity;
+		float collideRadius;
+		HammerProjectile(Rectangle _rect, float _damage, Vector2 _velocity, float _collideRadius) :
+			Projectile(_rect, _damage, DefaultPushBack, AttackCooldown),
+			CenterOffset(_rect.width / 4.0f, _rect.height / 4.0f), velocity(_velocity), collideRadius(_collideRadius)
+		{
+		};
+		bool checkCollision(const Enemy& enemy) const override {
+			Vector2 center = Vector2(rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f);
+			Vector2 hitCenter = center + Vector2Rotate(CenterOffset, angle * DEG2RAD);
+			return CheckCollisionCircles(enemy.position, enemy.def->hurtRadius, hitCenter, collideRadius);
+		}
+		bool attackDef(Enemy& enemy) override {
+			Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
+			enemy.position = Vector2Add(enemy.position, direction);
+			return enemy.takeDemage(demage);
+		}
+	};
+public:
+	WeaponHammer(const Window& _window, const PlayerStats& _stats, const Vector2& _playerPosition, const bool& _playerTowards) :
+		BaseWeapon(_window, Name, _stats, _playerPosition, _playerTowards,
+			"旋转的锤子，向最近的敌人发射。"
+		), fireManager(AttackInterval, projectileCount(), cooldown()) {
+		DefaultDemage = 8;
+		DefaultCooldown = 60;
+	}
+	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc funcs) override {
+		auto result = fireManager.get();
+		if (result) {
+			if (*result >= 0) {
+				Vector2 direction = funcs.getNearestEnemyDirection();
+				if (Vector2Length(direction) == 0.0f) {
+					direction = { playerTowards ? 1.0f : -1.0f, 0.0f };
+				}
+				direction = Vector2Normalize(direction);
+				Vector2 velocity = Vector2Scale(direction, speed());
+				auto size = this->size();
+				Rectangle rect = { playerPosition.x - size.x / 2.0f, playerPosition.y - size.y / 2.0f, size.x, size.y };
+				float damage = DefaultDemage * stats.strength;
+				projectiles.push_back(std::make_unique<HammerProjectile>(rect, damage, velocity, collideRadius()));
+			}
+		}
+		else {
+			fireManager.update(projectileCount(), cooldown());
+		}
+		//飞射物更新
+		for (auto& projectilePtr : projectiles) {
+			HammerProjectile* hammerProjectilePtr = static_cast<HammerProjectile*>(projectilePtr.get());
+			hammerProjectilePtr->angle += 8;
+			hammerProjectilePtr->time++;
+			if (hammerProjectilePtr->time < UniformTime) {
+				hammerProjectilePtr->rect.x += hammerProjectilePtr->velocity.x;
+				hammerProjectilePtr->rect.y += hammerProjectilePtr->velocity.y;
+			}
+			else if (hammerProjectilePtr->time < AccelerateTime + UniformTime) {
+				float ratio = float(UniformTime+AccelerateTime - hammerProjectilePtr->time) / float(AccelerateTime);
+				hammerProjectilePtr->rect.x += hammerProjectilePtr->velocity.x * ratio;
+				hammerProjectilePtr->rect.y += hammerProjectilePtr->velocity.y * ratio;
+			}
+			//这里反向
+			else if(hammerProjectilePtr->time == AccelerateTime + UniformTime) {
+				hammerProjectilePtr->velocity *= -1;
+				hammerProjectilePtr->attackedEnemy.clear();	//清空攻击过的敌人
+			}
+			else if (hammerProjectilePtr->time < 2 * AccelerateTime + UniformTime) {
+				float ratio = float(hammerProjectilePtr->time - UniformTime - AccelerateTime) / float(AccelerateTime);
+				hammerProjectilePtr->rect.x += hammerProjectilePtr->velocity.x * ratio;
+				hammerProjectilePtr->rect.y += hammerProjectilePtr->velocity.y * ratio;
+			}
+			else {
+				hammerProjectilePtr->rect.x += hammerProjectilePtr->velocity.x;
+				hammerProjectilePtr->rect.y += hammerProjectilePtr->velocity.y;
+			}
+			for(auto& [_,attackedTime] : hammerProjectilePtr->attackedEnemy) {
+				attackedTime = std::max(0, attackedTime - 1);
+			}
+		}
+		std::erase_if(projectiles, [this](const std::unique_ptr<Projectile>& projectilePtr) {
+			HammerProjectile* hammerProjectilePtr = static_cast<HammerProjectile*>(projectilePtr.get());
+			return hammerProjectilePtr->time >= TotalExistTime * stats.duration;
+			});
+		return projectiles;
+	}
+	void levelup() override {
+		switch (level)
+		{
+		case 0:
+			break;
+		case 1:
+			DefaultDemage += 5;
+			break;
+		case 2:
+			DefaultCount++;
+			break;
+		case 3:
+			DefaultDemage += 5;
+			break;
+		case 4:
+			DefaultCount++;
+			break;
+		case 5:
+			DefaultDemage += 5;
+			break;
+		case 6:
+			DefaultCount++;
+			break;
+		case 7:
+			DefaultDemage += 5;
+			break;
+		}
+		level++;
+		fireManager.update(projectileCount(), cooldown());
+		fireManager.reset();
+	}
+	void draw() const override {
+		for(auto& projectilePtr : projectiles){
+			HammerProjectile* projectile = static_cast<HammerProjectile*>(projectilePtr.get());
+			Rectangle source = window.getTexture("hammer_effect").source;
+			Rectangle dest = projectile->rect;
+			DrawTexturePro(*window.getTexture("hammer_effect").sprite, source,
+				{ dest.x + dest.width / 2.0f, dest.y + dest.height / 2.0f, dest.width, dest.height },
+				{ dest.width / 2.0f, dest.height / 2.0f }, projectile->angle, WHITE);
+		}
+	}
+};
+		
