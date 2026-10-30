@@ -19,16 +19,16 @@ public:
 		rect(_rect), demage(_damage), pushBack(_pushBack), DefaultAttackCooldown(_defaultAttackCooldown) {
 	};
 	virtual ~Projectile() = default;
-	virtual bool attackDef(Enemy& enemy) = 0;
-	bool attack(Enemy& enemy) {
-		if (!checkCollision(enemy)) return false;
+	virtual AttackResult attackDef(Enemy& enemy) = 0;
+	AttackResult attack(Enemy& enemy) {
+		if (!checkCollision(enemy)) return AttackResult{};
+		if (enemy.status != Enemy::Status::alive) return AttackResult{};
 		if (attackedEnemy.find(enemy.id) != attackedEnemy.end()) {
 			if (attackedEnemy[enemy.id] > 0) {
-				return false;
+				return AttackResult{};
 			}
 		}
 		attackedEnemy[enemy.id] = DefaultAttackCooldown;
-		if (enemy.status != Enemy::Status::alive) return false;
 		return attackDef(enemy);
 	}
 	//默认碰撞检测，粗略矩形即为实际碰撞。可重写
@@ -132,7 +132,7 @@ private:
 			Projectile(_rect, _damage, DefaultPushBack, MaxExistTime), 
 			rotated(_rotated), towards(_towards) {
 		};
-		bool attackDef(Enemy& enemy) override {
+		AttackResult attackDef(Enemy& enemy) override {
 			Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
 			enemy.position = Vector2Add(enemy.position, direction);
 			return enemy.takeDemage(demage);
@@ -266,7 +266,7 @@ private:
 		bool checkCollision(const Enemy& enemy) const override {
 			return CheckCollisionCircles(enemy.position, enemy.def->hurtRadius, { rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f }, radius);
 		}
-		bool attackDef(Enemy& enemy) override {
+		AttackResult attackDef(Enemy& enemy) override {
 			Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
 			enemy.position = Vector2Add(enemy.position, direction);
 			return enemy.takeDemage(demage);
@@ -381,7 +381,7 @@ private:
 			Vector2 hitCenter = center + Vector2Rotate(CenterOffset, angle * DEG2RAD);
 			return CheckCollisionCircles(enemy.position, enemy.def->hurtRadius, hitCenter, collideRadius);
 		}
-		bool attackDef(Enemy& enemy) override {
+		AttackResult attackDef(Enemy& enemy) override {
 			Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
 			enemy.position = Vector2Add(enemy.position, direction);
 			return enemy.takeDemage(demage);

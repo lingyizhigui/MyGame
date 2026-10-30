@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "window.hpp"
 #include <vector>
 #include <string>
 struct PlayerStats {
@@ -18,7 +19,7 @@ struct PlayerStats {
 	float magnet = 1.0f;
 
 	float luck = 100.0f;
-	float growth = 1.0f;
+	float growth = 0.01f;
 	float greed = 1.0f;
 	float curse = 1.0f;
 };
@@ -77,4 +78,13 @@ inline void registerWeapon(const weaponCreateFunc& weaponCreate) {
 struct WeaponUpdateFunc
 {
 	std::function<Vector2()> getNearestEnemyDirection;
+};
+//攻击结果，默认为未造成伤害
+struct AttackResult {
+	float demage = 0.0f;
+	bool isKilled = false;
+	enum class AttackType {
+		Normal,
+		Critical
+	} attackType = AttackType::Normal;
 };

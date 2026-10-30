@@ -8,6 +8,18 @@
 #include "window.hpp"
 #include "ui.hpp"
 #include "raymath.h"
+struct DemageNumber {
+	static constexpr int Duration = 40;
+	static constexpr int EmergenceTime = 10;
+	static constexpr int fontSize = 25;
+	int time = 0;
+	Vector2 position;
+	int demage;
+	AttackResult::AttackType type;
+	DemageNumber(const Vector2& _position, int _demage, AttackResult::AttackType _type) : 
+		position(_position), demage(_demage), type(_type) {
+	};
+};
 class GameLevel {
 	static constexpr int ENEMY_WAVE_COUNT = 20;
 	const Window& window;
@@ -23,6 +35,7 @@ class GameLevel {
 	std::vector<PassiveItem*> ownedPassives;
 	std::vector<std::unique_ptr<Pickup>> pickupList;
 	std::unique_ptr<Panel> panel = nullptr;
+	std::vector<DemageNumber> demageNumbers;
 	int levelupCount = 0;
 	Player& player;
 	static constexpr int GRID_SIZE = 128;
@@ -208,16 +221,18 @@ public:
 		auto& weaponGen = getWeaponRegisterPool();
 		for(auto& createFunc: weaponGen) {
 			allWeapons.emplace_back(createFunc(window, player.getStats(), player.getPosition(), player.getTowards()));
-			//测试时期，全部初始化为1级
-			allWeapons.back()->levelup();	
-			ownedWeapons.push_back(allWeapons.back().get());
+			//测试时期
+			if(allWeapons.back()->getName()=="Hammer") {
+				allWeapons.back()->levelup();
+				ownedWeapons.push_back(allWeapons.back().get());
+			}
 		}
 		for(int i=0;i<static_cast<int>(PlayerStatsEnum::SizeOfEnum);i++){
 			PlayerStatsEnum kind = static_cast<PlayerStatsEnum>(i);
 			allPassives.emplace_back(std::make_unique<PassiveItem>(window, kind, player.getStats()));
 			//测试，初始化为一级
-			allPassives.back()->levelup();
-			ownedPassives.push_back(allPassives.back().get());
+			//allPassives.back()->levelup();
+			//ownedPassives.push_back(allPassives.back().get());
 		}
 	}
 	void update() {
@@ -416,12 +431,14 @@ public:
 				Vector2 projectilePosition = GetWorldToScreen2D({ projectile->rect.x,projectile->rect.y }, camera);//2D坐标转换
 				Rectangle projectileRect = { projectilePosition.x,projectilePosition.y,projectile->rect.width,projectile->rect.height };
 				forNearGrids(projectileRect,
-					[&projectile,this](Enemy& enemy) {
+					[&projectile, this](Enemy& enemy) {
 						if (enemy.status != Enemy::Status::alive) return;
-						if (projectile->checkCollision(enemy)) {
-							if(projectile->attack(enemy)){
-								onEnemyDeath(enemy);
-							}
+						AttackResult result = projectile->attack(enemy);
+						if (result.isKilled) {
+							onEnemyDeath(enemy);
+						}
+						if(result.demage > 0) {
+							demageNumbers.emplace_back(enemy.getCenter(), static_cast<int>(result.demage), result.attackType);
 						}
 					});
 			}
@@ -430,6 +447,11 @@ public:
 		std::sort(enemyList.begin(), enemyList.end(), [](const Enemy& a, const Enemy& b) {
 			return a.position.y < b.position.y;
 			});
+		//伤害数字更新
+		for(auto& demageNumber : demageNumbers){
+			demageNumber.time++;
+		}
+		std::erase_if(demageNumbers, [](const DemageNumber& demageNumber) { return demageNumber.time > DemageNumber::Duration; });
 	}
 	void drawLevel() const {
 		BeginMode2D(getGameCamera());
@@ -483,6 +505,42 @@ public:
 		for (const auto& weapon : allWeapons) {
 			if (weapon->getLevel() == 0) continue;
 			weapon->draw();
+		}
+		//伤害数字
+		for (auto& demageNumber : demageNumbers) {
+			Color color = WHITE;
+			Color boarderColor = BLACK;
+			if (demageNumber.type == AttackResult::AttackType::Critical) {
+				color = RED;
+			}
+			float ratio;
+			if(demageNumber.time < DemageNumber::EmergenceTime) {
+				ratio = static_cast<float>(demageNumber.time) / DemageNumber::EmergenceTime;
+			}
+			else if(demageNumber.time >= DemageNumber::Duration - DemageNumber::EmergenceTime){
+				ratio = static_cast<float>(DemageNumber::Duration - demageNumber.time) / DemageNumber::EmergenceTime;
+			}
+			else {
+				ratio = 1.0f;
+			}
+			color.a = static_cast<unsigned char>(color.a * ratio);
+			boarderColor.a = static_cast<unsigned char>(boarderColor.a * ratio);
+			const Font& font = window.getFont(DemageNumber::fontSize);
+			std::string textStr = std::format("{}", demageNumber.demage);
+			const char* text = textStr.c_str();
+			float displaySize = DemageNumber::fontSize * ratio * 1.2f;
+			Vector2 textPosition = { demageNumber.position.x - MeasureTextEx(font, text, displaySize, 0.0f).x * 0.5f,
+				demageNumber.position.y - displaySize * 0.5f };
+			for (int i = 0; i < 3; i++) {
+				for(int j = 0; j < 3; j++) {
+					if(i==1 && j==1) continue;
+					DrawTextEx(font, text, { textPosition.x + (i - 1) * 2.0f, textPosition.y + (j - 1) * 2.0f }, displaySize, 0.0f, boarderColor);
+				}
+			}
+			for (int i = 0; i < 2; i++) {//文字的周边是有半透明区域的，重复会更饱满更粗体
+				DrawTextEx(font, text, textPosition, displaySize, 0.0f, color);
+			}
+			
 		}
 		EndMode2D();
 		//over

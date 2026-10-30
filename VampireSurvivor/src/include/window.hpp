@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "raylib.h"
+#include "json.hpp"
 #include <string>
 #include <unordered_map>
 #include <map>
@@ -7,7 +8,6 @@
 #include <set>
 #include <fstream>
 #include <random>
-#include "json.hpp"
 struct DrawFromSpriteSet{
 	Rectangle source;
 	Texture2D* sprite;
@@ -63,6 +63,7 @@ private:
 			"增加最大生命值增加生命回复速度减少受到的伤害增加移动速度增加武器伤害增加投射物速度增加投射物持续时间增加投射物范围减少武器冷却时间增加投射物数量增加复活次数增加拾取范围增加幸运增加经验获取速率增加金币掉落诅咒：增加敌人数量"
 			"向左右两边挥舞，攻击并击退敌人。"
 			"以自己为中心的辐射状区域，伤害一切靠近的敌人"
+			"旋转的锤子，向最近的敌人发射。"
 			"新物品!！";
 		for(const char* c= usedCharacters.c_str(); *c != '\0'; ){
 			int byte = 0;
@@ -77,7 +78,7 @@ private:
 			codepoints.data(),
 			static_cast<int>(codepoints.size())
 		);
-		SetTextureFilter(cnFont.texture, TEXTURE_FILTER_BILINEAR);	//字体用双线性插值，略平滑
+		SetTextureFilter(cnFont.texture, TEXTURE_FILTER_BILINEAR);	//字体用双线性插值，放大更平滑
 		fonts[fontSize] = cnFont;
 		return cnFont;
 	}

@@ -59,16 +59,21 @@ public:
 	} status;
 	char frame;
 	char changeTime;
-	bool takeDemage(float demage) { //返回是否由于此次攻击死亡
-		if (status != Status::alive) return false;
+	AttackResult takeDemage(float demage) { //返回是否由于此次攻击死亡
+		AttackResult result;
+		if (status != Status::alive) return result;
 		health -= demage;
+		result.demage = demage;
 		if (health <= 0) {
 			status = Status::dying;
 			frame = 0;
 			changeTime = 0;
-			return true;
+			result.isKilled = true;
 		}
-		return false;
+		return result;
+	}
+	Vector2 getCenter() const {
+		return { position.x, position.y - def->height / 2.0f };
 	}
 };
 class EnemyGenerator {
