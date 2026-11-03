@@ -1,0 +1,152 @@
+{
+  "textures": [
+    {
+      "image": "weapon_effect.png",
+      "size": {
+        "w": 266,
+        "h": 551
+      },
+      "sprites": [
+        {
+          "filename": "garlic_effect",
+          "region": {
+            "x": 5,
+            "y": 5,
+            "w": 256,
+            "h": 256
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "whip_effect",
+          "region": {
+            "x": 5,
+            "y": 266,
+            "w": 256,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "hammer_effect",
+          "region": {
+            "x": 5,
+            "y": 399,
+            "w": 65,
+            "h": 104
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "laser_charged_1",
+          "region": {
+            "x": 75,
+            "y": 399,
+            "w": 58,
+            "h": 71
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "laser_normal_1",
+          "region": {
+            "x": 138,
+            "y": 399,
+            "w": 58,
+            "h": 71
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "laser_charged_2",
+          "region": {
+            "x": 201,
+            "y": 399,
+            "w": 58,
+            "h": 71
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "laser_charged_3",
+          "region": {
+            "x": 75,
+            "y": 475,
+            "w": 58,
+            "h": 71
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "laser_charged_0",
+          "region": {
+            "x": 138,
+            "y": 475,
+            "w": 58,
+            "h": 71
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "laser_normal_0",
+          "region": {
+            "x": 201,
+            "y": 475,
+            "w": 58,
+            "h": 71
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "version": "1.0.0",
+    "format": "RGBA8888"
+  }
+}

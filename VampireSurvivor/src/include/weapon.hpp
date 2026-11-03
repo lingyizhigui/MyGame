@@ -19,7 +19,16 @@ public:
 		rect(_rect), demage(_damage), pushBack(_pushBack), DefaultAttackCooldown(_defaultAttackCooldown) {
 	};
 	virtual ~Projectile() = default;
-	virtual AttackResult attackDef(Enemy& enemy) = 0;
+	//默认碰撞检测，粗略矩形即为实际碰撞。可重写
+	virtual bool checkCollision(const Enemy& enemy) const {
+		return CheckCollisionCircleRec(enemy.position, enemy.def->hurtRadius, rect);
+	}
+	//默认攻击函数，击退敌人并造成伤害，可重写
+	virtual AttackResult attackDef(Enemy& enemy) {
+		Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
+		enemy.position = Vector2Add(enemy.position, direction);
+		return enemy.takeDemage(demage);
+	};
 	AttackResult attack(Enemy& enemy) {
 		if (!checkCollision(enemy)) return AttackResult{};
 		if (enemy.status != Enemy::Status::alive) return AttackResult{};
@@ -30,10 +39,6 @@ public:
 		}
 		attackedEnemy[enemy.id] = DefaultAttackCooldown;
 		return attackDef(enemy);
-	}
-	//默认碰撞检测，粗略矩形即为实际碰撞。可重写
-	virtual bool checkCollision(const Enemy& enemy) const {
-		return CheckCollisionCircleRec(enemy.position, enemy.def->hurtRadius, rect);
 	}
 };
 //武器基类
@@ -68,8 +73,9 @@ protected:
 				return -1;
 			}
 			else if (time % fireInterval == 0) {
+				int index = time / fireInterval;
 				time++;
-				return time / fireInterval;
+				return index;
 			}
 			else {
 				time++;
@@ -128,15 +134,10 @@ private:
 		int existTime = MaxExistTime;
 		bool rotated = false;	//false: front, true: back
 		bool towards = true;	//true: right, false: left
-		WhipProjectile(Rectangle _rect, float _damage,bool _rotated,bool _towards) :
-			Projectile(_rect, _damage, DefaultPushBack, MaxExistTime), 
+		WhipProjectile(Rectangle _rect, float _damage, bool _rotated, bool _towards) :
+			Projectile(_rect, _damage, DefaultPushBack, MaxExistTime),
 			rotated(_rotated), towards(_towards) {
 		};
-		AttackResult attackDef(Enemy& enemy) override {
-			Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
-			enemy.position = Vector2Add(enemy.position, direction);
-			return enemy.takeDemage(demage);
-		}
 	};
 public:
 	WeaponWhip(const Window& _window, const PlayerStats& _stats, const Vector2& _playerPosition, const bool& _playerTowards) : 
@@ -266,11 +267,6 @@ private:
 		bool checkCollision(const Enemy& enemy) const override {
 			return CheckCollisionCircles(enemy.position, enemy.def->hurtRadius, { rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f }, radius);
 		}
-		AttackResult attackDef(Enemy& enemy) override {
-			Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
-			enemy.position = Vector2Add(enemy.position, direction);
-			return enemy.takeDemage(demage);
-		}
 	};
 public:
 	WeaponGarlic(const Window& _window, const PlayerStats& _stats, const Vector2& _playerPosition, const bool& _playerTowards) :
@@ -349,7 +345,7 @@ public:
 private:
 	static constexpr int AttackInterval = 10;
 	static constexpr int DefaultSpeed = 6;
-	static constexpr Vector2 DefaultSize = { 65, 104 };
+	static constexpr IntVector2 DefaultSize = { 65, 104 };
 	static constexpr int DefaultCollideRadius = 32;
 	static constexpr int TotalExistTime = 120;
 	static constexpr int UniformTime = 50;
@@ -380,11 +376,6 @@ private:
 			Vector2 center = Vector2(rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f);
 			Vector2 hitCenter = center + Vector2Rotate(CenterOffset, angle * DEG2RAD);
 			return CheckCollisionCircles(enemy.position, enemy.def->hurtRadius, hitCenter, collideRadius);
-		}
-		AttackResult attackDef(Enemy& enemy) override {
-			Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
-			enemy.position = Vector2Add(enemy.position, direction);
-			return enemy.takeDemage(demage);
 		}
 	};
 public:
@@ -494,4 +485,156 @@ public:
 		}
 	}
 };
-		
+//激光
+class WeaponLaser : public BaseWeapon {
+public:
+	static constexpr std::string_view Name = "Laser";
+	inline static bool registered = registerThis<WeaponLaser>();
+private:
+	static constexpr int AttackInterval = 1;
+	static constexpr IntVector2 DefaultSize = { 58, 71 };
+	static constexpr Vector2 DisplaySize = { DefaultSize.x * 1.0f, DefaultSize.y * 1.0f };
+	static constexpr int ExsistTime = 24;
+	static constexpr int ChargingNeedTime = 300;
+	Vector2 lastPosition;
+	int chargeTime = 0;
+	bool charged = true;
+	int DefaultCount = 1;
+	int projectileCount() { return DefaultCount + stats.amount; }
+	Vector2 size() { return Vector2Scale(DisplaySize, stats.area); }
+	FireManager fireManager;
+	class LaserProjectile : public Projectile {
+	public:
+		static constexpr int DefaultPushBack = 5;
+		static constexpr int AttackCooldown = 15;
+		const Vector2 size;
+		int textureNum;
+		const bool charged;
+		const bool towards;
+		int time = 0;
+		LaserProjectile(Rectangle _rect, float _damage, Vector2 _size, int _textureNum, bool _charged, bool _towards) :
+			Projectile(_rect, _damage, DefaultPushBack, AttackCooldown),
+			size(_size), textureNum(_textureNum), charged(_charged), towards(_towards) {
+		};
+	};
+public:
+	WeaponLaser(const Window& _window, const PlayerStats& _stats, const Vector2& _playerPosition, const bool& _playerTowards) :
+		BaseWeapon(_window, Name, _stats, _playerPosition, _playerTowards,
+			"发射一束激光，持续伤害沿途的敌人。"
+		), fireManager(AttackInterval, projectileCount(), cooldown()) {
+		DefaultDemage = 3;
+		DefaultCooldown = 90;
+		lastPosition = playerPosition;
+	}
+	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc funcs) override {
+		chargeTime++;
+		auto result = fireManager.get();
+		if (result) {
+			if (*result == 0 && chargeTime >= ChargingNeedTime) {
+				charged = true;
+			}
+			if (*result >= 0) {
+				int textureNum = static_cast<int>(std::ceil(window.getCenter().x / size().x));
+				bool towards = *result % 2 == 0;//偶数向右，奇数向左
+				int totalRows;
+				float rowsTemp = towards ? std::ceil(projectileCount() / 2.0f) : std::floor(projectileCount() / 2.0f);
+				totalRows = static_cast<int>(rowsTemp);
+				float top = playerPosition.y - size().y * totalRows / 2.0f;
+				float y = top + size().y * std::floor((*result) / 2.0f);
+				float x = playerPosition.x;
+				x -= towards ? 0 : size().x * textureNum;
+				float damage = DefaultDemage * stats.strength;
+				if(charged) {
+					damage *= 2;
+				}
+				projectiles.push_back(std::make_unique<LaserProjectile>(
+					Rectangle{ x, y, size().x * textureNum, size().y }, damage, size(), textureNum, charged, towards));
+			}
+		}
+		else {
+			if(charged) {
+				chargeTime = 0;
+				charged = false;
+			}
+			fireManager.update(projectileCount(), cooldown());
+		}
+		//飞射物更新
+		for(auto& projectilePtr : projectiles) {
+			LaserProjectile* laserProjectilePtr = static_cast<LaserProjectile*>(projectilePtr.get());
+			laserProjectilePtr->time++;
+			Vector2 posChange = Vector2Subtract(playerPosition, lastPosition);
+			laserProjectilePtr->rect.x += posChange.x;
+			laserProjectilePtr->rect.y += posChange.y;
+			for(auto& [_,attackedTime] : laserProjectilePtr->attackedEnemy) {
+				attackedTime = std::max(0, attackedTime - 1);
+			}
+		}
+		std::erase_if(projectiles, [this](const std::unique_ptr<Projectile>& projectilePtr) {
+			LaserProjectile* laserProjectilePtr = static_cast<LaserProjectile*>(projectilePtr.get());
+			return laserProjectilePtr->time >= ExsistTime * stats.duration;
+			});
+		lastPosition = playerPosition;
+		return projectiles;
+	}
+	void levelup() override {
+		switch (level)
+		{
+		case 0:
+			break;
+		case 1:
+			DefaultDemage += 5;
+			break;
+		case 2:
+			DefaultCount++;
+			break;
+		case 3:
+			DefaultDemage += 5;
+			break;
+		case 4:
+			DefaultCount++;
+			break;
+		case 5:
+			DefaultDemage += 5;
+			break;
+		case 6:
+			DefaultCount++;
+			break;
+		case 7:
+			DefaultDemage += 5;
+			break;
+		}
+		level++;
+		fireManager.update(projectileCount(), cooldown());
+		fireManager.reset();
+	}
+	void draw() const override {
+		for(auto& projectilePtr : projectiles) {
+			LaserProjectile* projectile = static_cast<LaserProjectile*>(projectilePtr.get());
+			std::string textureName = projectile->charged ? "laser_charged_0" : "laser_normal_0";
+			const DrawFromSpriteSet& texture = window.getTexture(textureName);
+			Rectangle source = texture.source;
+			Rectangle dest = { projectile->rect.x, projectile->rect.y, projectile->size.x, projectile->size.y };
+			if (!projectile->towards) {
+				source.width = -source.width;
+				dest.x += projectile->size.x * (projectile->textureNum - 1);
+			}
+			DrawTexturePro(*texture.sprite, source, dest, { 0,0 }, 0.0f, WHITE);
+			for(int n = 1;n<projectile->textureNum;n++){
+				if(projectile->charged) {
+					textureName = "laser_charged_" + std::to_string(GetRandomValue(1, 3));
+				}
+				else {
+					textureName = "laser_normal_1";
+				}
+				const DrawFromSpriteSet& texture = window.getTexture(textureName);
+				Rectangle source = texture.source;
+				Rectangle dest = { projectile->rect.x + projectile->size.x * n, projectile->rect.y, projectile->size.x, projectile->size.y };
+				if(!projectile->towards) {
+					source.width = -source.width;
+					dest.x = projectile->rect.x + projectile->size.x * (projectile->textureNum - 1 - n);
+				}
+				DrawTexturePro(*texture.sprite, source, dest, { 0,0 }, 0.0f, WHITE);
+			}
+		}
+	}
+};

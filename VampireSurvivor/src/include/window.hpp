@@ -19,6 +19,9 @@ struct ViewTransform {
 struct IntVector2 {
 	int x;
 	int y;
+	constexpr operator Vector2() const noexcept{
+		return { static_cast<float>(x), static_cast<float>(y) };
+	}
 };
 class SoundPool {
 private:
@@ -185,6 +188,7 @@ public:
 		EndDrawing();
 	}
 };
+
 //一些通用函数
 inline bool bernoulli(double probability) {
 	static std::mt19937 rng{ std::random_device{}() };
