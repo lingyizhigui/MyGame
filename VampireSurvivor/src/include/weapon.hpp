@@ -122,9 +122,10 @@ public:
 private:
 	int defaultWidth = 256;
 	int defaultHeight = 128;
-	static constexpr int partTimeGenerate = 8;
+	static constexpr int AttackInterval = 8;
 	int DefaultProjectileAmount = 1;
 	int projectileAmount() { return DefaultProjectileAmount + stats.amount; }
+	FireManager fireManager;
 	//神鞭粒子
 	class WhipProjectile : public Projectile
 	{
@@ -140,39 +141,30 @@ private:
 		};
 	};
 public:
-	WeaponWhip(const Window& _window, const PlayerStats& _stats, const Vector2& _playerPosition, const bool& _playerTowards) : 
+	WeaponWhip(const Window& _window, const PlayerStats& _stats, const Vector2& _playerPosition, const bool& _playerTowards) :
 		BaseWeapon(_window, Name, _stats, _playerPosition, _playerTowards,
 			"向左右两边挥舞，攻击并击退敌人。"
-			) {
+		), fireManager(AttackInterval, projectileAmount(), cooldown()) {
 		DefaultDemage = 10;
 		DefaultCooldown = 60;
 	};
 	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc) override {
-		//冷却阶段
-		if (coolTime > 0) {
-			coolTime--;
-			if (coolTime == 0) {
-				coolTime = projectileAmount() * -partTimeGenerate;//注意用负数表示发射阶段
-			}
-		}
-		//发射阶段
-		else {
-			coolTime++;
-			int projectileIndex = (coolTime - projectileAmount() * -partTimeGenerate) / partTimeGenerate;
-			if (coolTime % partTimeGenerate == 0) {
-				bool rotated = projectileIndex % 2 == 0;
-				Rectangle dest = {playerPosition.x, playerPosition.y, defaultWidth * stats.area, defaultHeight * stats.area};
+		auto result = fireManager.get();
+		if (result) {
+			if (*result >= 0) {
+				bool rotated = (*result) % 2 != 0;
+				Rectangle dest = { playerPosition.x, playerPosition.y, defaultWidth * stats.area, defaultHeight * stats.area };
 				if (!rotated && playerTowards) dest.y -= defaultHeight * stats.area;
 				else if (!rotated && !playerTowards) dest.x -= defaultWidth * stats.area, dest.y -= defaultHeight * stats.area;
 				else if (rotated && playerTowards) dest.x -= defaultWidth * stats.area;
 				else;
-				dest.y -= float((projectileIndex + 1) / 2) * 64;
+				dest.y -= float((*result) / 2) * 64;
 				float damage = DefaultDemage * stats.strength;
 				projectiles.push_back(std::make_unique<WhipProjectile>(dest, damage, rotated, playerTowards));
 			}
-			if (coolTime == 0) {
-				coolTime = cooldown();
-			}
+		}
+		else {
+			fireManager.update(projectileAmount(), cooldown());
 		}
 		//飞射物更新
 		for (auto& projectilePtr : projectiles) {
@@ -224,7 +216,8 @@ public:
 			break;
 		}
 		level++;
-		coolTime = 0;
+		fireManager.update(projectileAmount(), cooldown());
+		fireManager.reset();
 	};
 	void draw() const override {
 		for(auto& projectilePtr : projectiles){
