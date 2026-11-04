@@ -88,6 +88,7 @@ protected:
 		void update(int _fireCount, int _coolDown) {
 			fireCount = _fireCount;
 			coolDown = _coolDown;
+			time = std::max(time, -coolDown);	//本轮更新冷却缩减
 		}
 	};
 	//注册函数，注册武器构造函数到注册池
@@ -110,7 +111,7 @@ public:
 		return window.getTexture(std::string(name) + "_icon");
 	}
 	virtual ~BaseWeapon() = default;
-	virtual const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc funcs) = 0;
+	virtual const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc&) = 0;
 	virtual void draw() const = 0;
 	
 };
@@ -148,7 +149,7 @@ public:
 		DefaultDemage = 10;
 		DefaultCooldown = 60;
 	};
-	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc) override {
+	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc&) override {
 		auto result = fireManager.get();
 		if (result) {
 			if (*result >= 0) {
@@ -190,10 +191,6 @@ public:
 		return projectiles;
 	};
 	void levelup() override {
-		if (level >= MAX_LEVEL) {
-			terminate();
-			return;
-		}
 		switch (level)
 		{
 		case 0:
@@ -282,7 +279,7 @@ public:
 		Rectangle rect = { playerPosition.x - radius, playerPosition.y - radius, radius * 2.0f, radius * 2.0f };
 		projectiles.emplace_back(std::make_unique<GarlicProjectile>(rect, DefaultDemage * stats.strength, cooldown(), radius));
 	};
-	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc) override {
+	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc&) override {
 		//始终只有一个大蒜粒子，更新其位置和属性
 		float radius = defaultRadius * stats.area;
 		Rectangle rect = { playerPosition.x - radius, playerPosition.y - radius, radius * 2.0f, radius * 2.0f };
@@ -388,7 +385,7 @@ public:
 		DefaultDemage = 8;
 		DefaultCooldown = 60;
 	}
-	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc funcs) override {
+	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc& funcs) override {
 		auto result = fireManager.get();
 		if (result) {
 			if (*result >= 0) {
@@ -528,8 +525,15 @@ public:
 		DefaultCooldown = 90;
 		lastPosition = playerPosition;
 	}
-	const std::vector<std::unique_ptr<Projectile>>& update(WeaponUpdateFunc funcs) override {
+	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc&) override {
 		chargeTime++;
+		//更新先前的投射物位置，防止本帧生成的错误偏移
+		for (auto& projectilePtr : projectiles) {
+			LaserProjectile* laserProjectilePtr = static_cast<LaserProjectile*>(projectilePtr.get());
+			Vector2 posChange = Vector2Subtract(playerPosition, lastPosition);
+			laserProjectilePtr->rect.x += posChange.x;
+			laserProjectilePtr->rect.y += posChange.y;
+		}
 		auto result = fireManager.get();
 		if (result) {
 			if (*result == 0 && chargeTime >= ChargingNeedTime) {
@@ -564,9 +568,6 @@ public:
 		for(auto& projectilePtr : projectiles) {
 			LaserProjectile* laserProjectilePtr = static_cast<LaserProjectile*>(projectilePtr.get());
 			laserProjectilePtr->time++;
-			Vector2 posChange = Vector2Subtract(playerPosition, lastPosition);
-			laserProjectilePtr->rect.x += posChange.x;
-			laserProjectilePtr->rect.y += posChange.y;
 			for(auto& [_,attackedTime] : laserProjectilePtr->attackedEnemy) {
 				attackedTime = std::max(0, attackedTime - 1);
 			}

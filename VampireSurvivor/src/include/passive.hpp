@@ -17,7 +17,7 @@ private:
 	PlayerStats& stats;
 	static const PassiveDef& getDef(PlayerStatsEnum _statsType){
 		static const std::array<PassiveDef, static_cast<int>(PlayerStatsEnum::SizeOfEnum)> passiveDefs = {
-			PassiveDef{"maxHealth","增加最大生命值", [](PlayerStats& stats){ stats.maxHealth *= 0.2f; }},
+			PassiveDef{"maxHealth","增加最大生命值", [](PlayerStats& stats){ stats.maxHealth *= 1.2f; }},
 			PassiveDef{"recovery","增加生命回复速度", [](PlayerStats& stats){ stats.recovery += 0.2f; }},
 			PassiveDef{"armor","减少受到的伤害", [](PlayerStats& stats){ stats.armor += 1; }},
 			PassiveDef{"moveSpeed","增加移动速度", [](PlayerStats& stats){ stats.moveSpeed += 0.1f; }},
@@ -36,10 +36,10 @@ private:
 		};
 		return passiveDefs[static_cast<int>(_statsType)];
 	}
-	const std::string_view& statsToSting(PlayerStatsEnum _statsType) const {
+	static const std::string_view& statsToSting(PlayerStatsEnum _statsType) {
 		return getDef(_statsType).name;
 	}
-	const std::string_view& statsToDescription(PlayerStatsEnum _statsType) const {
+	static const std::string_view& statsToDescription(PlayerStatsEnum _statsType) {
 		return getDef(_statsType).description;
 	}
 public:

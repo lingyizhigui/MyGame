@@ -114,7 +114,7 @@ public:
 		DrawTextEx(window.getFont(64), "    选择升级的物品", { static_cast<float>(LeftMargin + PaddingLeft), static_cast<float>(TopMargin) }, 64, 0.0f, WHITE);
 	}
 	BaseItem* update() {
-		if(IsKeyDown(KEY_ENTER)||IsKeyDown(KEY_SPACE)){
+		if(IsKeyPressed(KEY_ENTER)||IsKeyPressed(KEY_SPACE)){
 			LevelupButton* choosedButton = static_cast<LevelupButton*>(buttons[choosedIndex].get());
 			return choosedButton->item;
 		}

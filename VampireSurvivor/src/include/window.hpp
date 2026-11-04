@@ -67,6 +67,7 @@ private:
 			"向左右两边挥舞，攻击并击退敌人。"
 			"以自己为中心的辐射状区域，伤害一切靠近的敌人"
 			"旋转的锤子，向最近的敌人发射。"
+			"发射一束激光，持续伤害沿途的敌人。"
 			"新物品!！";
 		for(const char* c= usedCharacters.c_str(); *c != '\0'; ){
 			int byte = 0;
@@ -93,6 +94,7 @@ public:
 		SetWindowState(FLAG_VSYNC_HINT  | FLAG_WINDOW_RESIZABLE);
 		Image icon = LoadImage("./resources/icon.png");
 		SetWindowIcon(icon);
+		UnloadImage(icon);
 		InitAudioDevice();
 		SetTargetFPS(fps);
 		SetExitKey(KEY_NULL);
@@ -157,12 +159,7 @@ public:
 		textureDrawMap.emplace(name, DrawFromSpriteSet{ { 0.0f, 0.0f, static_cast<float>(texture.width), static_cast<float>(texture.height) }, &spriteMap.at(name) });
 	}
 	const DrawFromSpriteSet& getTexture(const std::string& name) const {
-		auto it = textureDrawMap.find(name);
-		if (it != textureDrawMap.end()) {
-			return it->second;
-		}
-		assert(false && "Texture not found in textureDrawMap");//不能返回空的DrawFromSpriteSet，因为调用者会直接解引用sprite指针
-		return {};	//release模式报错，不得不
+		return textureDrawMap.at(name);	//at自动抛异常
 	}
 	ViewTransform getViewTransform() const {
 		float sizeX = static_cast<float>(GetScreenWidth()) / WINDOW_WIDTH;

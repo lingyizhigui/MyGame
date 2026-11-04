@@ -116,7 +116,7 @@ public:
 			_id,
 			_positon,
 			{0.0f, 0.0f},
-			static_cast<int>(def.maxHealth),
+			def.maxHealth,
 			true,	//towards: right
 			Enemy::Status::alive,
 			0	//frame index
