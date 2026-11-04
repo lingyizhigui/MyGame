@@ -153,10 +153,19 @@ public:
 		if (result) {
 			if (*result >= 0) {
 				bool rotated = (*result) % 2 != 0;
-				Rectangle dest = { playerPosition.x, playerPosition.y, defaultWidth * stats.area, defaultHeight * stats.area };
-				if (!rotated && playerTowards) dest.y -= defaultHeight * stats.area;
-				else if (!rotated && !playerTowards) dest.x -= defaultWidth * stats.area, dest.y -= defaultHeight * stats.area;
-				else if (rotated && playerTowards) dest.x -= defaultWidth * stats.area;
+				static constexpr float xOffset = 0.15;
+				static constexpr float yOffset = 0.10;
+				Rectangle dest = { playerPosition.x - defaultWidth * stats.area * xOffset, 
+					playerPosition.y - defaultHeight * stats.area * yOffset, 
+					defaultWidth * stats.area, 
+					defaultHeight * stats.area };
+				if (!rotated && playerTowards) 
+					dest.y -= defaultHeight * stats.area - 2 * defaultHeight * stats.area * yOffset;
+				else if (!rotated && !playerTowards) 
+					dest.x -= defaultWidth * stats.area - 2 * defaultWidth * stats.area * xOffset, 
+					dest.y -= defaultHeight * stats.area - 2 * defaultHeight * stats.area * yOffset;
+				else if (rotated && playerTowards) 
+					dest.x -= defaultWidth * stats.area - 2 * defaultWidth * stats.area * xOffset;
 				else;
 				dest.y -= float((*result) / 2) * 64;
 				float damage = DefaultDemage * stats.strength;
