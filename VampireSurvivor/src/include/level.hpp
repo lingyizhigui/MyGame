@@ -226,7 +226,7 @@ public:
 		for(auto& createFunc: weaponGen) {
 			allWeapons.emplace_back(createFunc(window, player.getStats(), player.getPosition(), player.getTowards()));
 			//测试时期
-			if(allWeapons.back()->getName()=="Whip") {
+			if(allWeapons.back()->getName() == "Whip") {
 				allWeapons.back()->levelup();
 				ownedWeapons.push_back(allWeapons.back().get());
 			}

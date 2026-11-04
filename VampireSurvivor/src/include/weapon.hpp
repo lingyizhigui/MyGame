@@ -111,7 +111,19 @@ public:
 		return window.getTexture(std::string(name) + "_icon");
 	}
 	virtual ~BaseWeapon() = default;
-	virtual const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc&) = 0;
+	virtual void updateDef(const WeaponUpdateFunc&) = 0;
+	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc& funcs) {
+		for(auto& projectilePtr : projectiles) {
+			for(auto& [_,attackedTime] : projectilePtr->attackedEnemy) {
+				attackedTime--;
+			}
+			std::erase_if(projectilePtr->attackedEnemy, [](const std::pair<uint64_t, int>& pair) {
+				return pair.second <= 0;
+				});
+		}
+		updateDef(funcs);
+		return projectiles;
+	}
 	virtual void draw() const = 0;
 	
 };
@@ -149,7 +161,7 @@ public:
 		DefaultDemage = 10;
 		DefaultCooldown = 60;
 	};
-	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc&) override {
+	void updateDef(const WeaponUpdateFunc&) override {
 		auto result = fireManager.get();
 		if (result) {
 			if (*result >= 0) {
@@ -180,15 +192,11 @@ public:
 		for (auto& projectilePtr : projectiles) {
 			WhipProjectile* whipProjectilePtr = static_cast<WhipProjectile*>(projectilePtr.get());
 			whipProjectilePtr->existTime--;
-			for(auto& [_,attackedTime] : whipProjectilePtr->attackedEnemy) {
-				attackedTime = std::max(0, attackedTime - 1);
-			}
 		}
 		std::erase_if(projectiles, [](const std::unique_ptr<Projectile>& projectilePtr) {
 			WhipProjectile* whipProjectilePtr = static_cast<WhipProjectile*>(projectilePtr.get());
 			return whipProjectilePtr->existTime <= 0;
 			});
-		return projectiles;
 	};
 	void levelup() override {
 		switch (level)
@@ -279,7 +287,7 @@ public:
 		Rectangle rect = { playerPosition.x - radius, playerPosition.y - radius, radius * 2.0f, radius * 2.0f };
 		projectiles.emplace_back(std::make_unique<GarlicProjectile>(rect, DefaultDemage * stats.strength, cooldown(), radius));
 	};
-	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc&) override {
+	void updateDef(const WeaponUpdateFunc&) override {
 		//始终只有一个大蒜粒子，更新其位置和属性
 		float radius = defaultRadius * stats.area;
 		Rectangle rect = { playerPosition.x - radius, playerPosition.y - radius, radius * 2.0f, radius * 2.0f };
@@ -288,10 +296,6 @@ public:
 		projectiles[0]->DefaultAttackCooldown = std::max(5, static_cast<int>(DefaultCooldown * stats.cooldown));
 		GarlicProjectile* garlicProjectilePtr = static_cast<GarlicProjectile*>(projectiles[0].get());
 		garlicProjectilePtr->radius = radius;
-		for(auto& [_,attackedTime] : projectiles[0]->attackedEnemy) {
-			attackedTime = std::max(0, attackedTime - 1);
-		}
-		return projectiles;
 	}
 	void levelup() override {
 		switch (level)
@@ -385,7 +389,7 @@ public:
 		DefaultDemage = 8;
 		DefaultCooldown = 60;
 	}
-	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc& funcs) override {
+	void updateDef(const WeaponUpdateFunc& funcs) override {
 		auto result = fireManager.get();
 		if (result) {
 			if (*result >= 0) {
@@ -432,15 +436,11 @@ public:
 				hammerProjectilePtr->rect.x += hammerProjectilePtr->velocity.x;
 				hammerProjectilePtr->rect.y += hammerProjectilePtr->velocity.y;
 			}
-			for(auto& [_,attackedTime] : hammerProjectilePtr->attackedEnemy) {
-				attackedTime = std::max(0, attackedTime - 1);
-			}
 		}
 		std::erase_if(projectiles, [this](const std::unique_ptr<Projectile>& projectilePtr) {
 			HammerProjectile* hammerProjectilePtr = static_cast<HammerProjectile*>(projectilePtr.get());
 			return hammerProjectilePtr->time >= TotalExistTime * stats.duration;
 			});
-		return projectiles;
 	}
 	void levelup() override {
 		switch (level)
@@ -525,7 +525,7 @@ public:
 		DefaultCooldown = 90;
 		lastPosition = playerPosition;
 	}
-	const std::vector<std::unique_ptr<Projectile>>& update(const WeaponUpdateFunc&) override {
+	void updateDef(const WeaponUpdateFunc& funcs) override {
 		chargeTime++;
 		//更新先前的投射物位置，防止本帧生成的错误偏移
 		for (auto& projectilePtr : projectiles) {
@@ -568,16 +568,12 @@ public:
 		for(auto& projectilePtr : projectiles) {
 			LaserProjectile* laserProjectilePtr = static_cast<LaserProjectile*>(projectilePtr.get());
 			laserProjectilePtr->time++;
-			for(auto& [_,attackedTime] : laserProjectilePtr->attackedEnemy) {
-				attackedTime = std::max(0, attackedTime - 1);
-			}
 		}
 		std::erase_if(projectiles, [this](const std::unique_ptr<Projectile>& projectilePtr) {
 			LaserProjectile* laserProjectilePtr = static_cast<LaserProjectile*>(projectilePtr.get());
 			return laserProjectilePtr->time >= ExsistTime * stats.duration;
 			});
 		lastPosition = playerPosition;
-		return projectiles;
 	}
 	void levelup() override {
 		switch (level)
