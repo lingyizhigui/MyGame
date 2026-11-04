@@ -286,25 +286,25 @@ public:
 				int gameWidth = window.getSize().x;
 				int gameHeight = window.getSize().y;
 				int r = GetRandomValue(0, gameWidth * 3 + gameHeight * 3);
-				int x = 0;
-				int y = 0;
+				float x = 0.0f;
+				float y = 0.0f;
 				if (r < gameHeight * 1.5f) {
 					x = player.getPosition().x - gameWidth + GetRandomValue(-area, area);
 					y = player.getPosition().y - gameHeight + r;
 				}
 				else if (r < gameHeight * 1.5f + gameWidth * 1.5f) {
-					x = player.getPosition().x - gameWidth + r - gameHeight * 1.5;
+					x = player.getPosition().x - gameWidth + r - gameHeight * 1.5f;
 					y = player.getPosition().y + gameHeight + GetRandomValue(-area, area);
 				}
 				else if (r < gameHeight * 3 + gameWidth * 1.5f) {
 					x = player.getPosition().x + gameWidth + GetRandomValue(-area, area);
-					y = player.getPosition().y - gameHeight + r - gameHeight * 1.5 - gameWidth * 1.5;
+					y = player.getPosition().y - gameHeight + r - gameHeight * 1.5f - gameWidth * 1.5f;
 				}
 				else {
 					x = player.getPosition().x - gameWidth + r - gameHeight * 3 - gameWidth * 1.5f;
 					y = player.getPosition().y - gameHeight + GetRandomValue(-area, area);
 				}
-				enemyList.push_back(generator.spawn("tjr", { float(x),float(y) }, enemyIdCounter++));
+				enemyList.push_back(generator.spawn("tjr", { x,y }, enemyIdCounter++));
 			}
 		}
 		//怪物前进、更新动画
@@ -321,7 +321,7 @@ public:
 				Vector2 direction = { player.getPosition().x - enemy.position.x, player.getPosition().y - enemy.position.y };
 				direction = Vector2Normalize(direction) * enemy.def->speed;
 				{
-					direction = direction * GetRandomValue(90, 110) / 100.0f;
+					direction = direction * (GetRandomValue(90, 110) / 100.0f);
 				}
 				enemy.direction = direction;
 				enemy.position = Vector2Add(enemy.position, direction);

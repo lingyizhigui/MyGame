@@ -174,7 +174,8 @@ public:
 		for(auto& particleArray : bloodParticles){
 			for(auto& particle : particleArray){
 				unsigned char alpha = static_cast<unsigned char>(float(particle.lifetime) / 60.0f * 255);
-				DrawRectangle(particle.position.x, particle.position.y, 4.0f, 4.0f, {255, 0, 0, alpha});
+				Rectangle particleRect = { particle.position.x, particle.position.y, 4.0f, 4.0f };
+				DrawRectangleRec(particleRect, {255, 0, 0, alpha});
 			}
 		}
 	}
@@ -182,11 +183,13 @@ public:
 	void drawHealthBar() const {
 		constexpr int barWidth = 96;
 		constexpr int barheight = 10;
-		float x = position.x - barWidth / 2.0f;
-		float y = position.y + barheight;
-		DrawRectangle(x, y, barWidth, barheight, BLACK);
+		float x = position.x - barWidth * 0.5f;
+		float y = position.y + barheight * 1.0f;
+		Rectangle barRect = { x, y, barWidth, barheight };
+		DrawRectangleRec(barRect, BLACK);
 		float healthRatio = health / maxHealth;
-		DrawRectangle(x, y, barWidth * healthRatio, barheight, GREEN);
+		barRect.width *= healthRatio;
+		DrawRectangleRec(barRect, GREEN);
 	}
 	//经验条绘制函数
 	void drawExpBar(const Window& window) const {
@@ -200,7 +203,7 @@ public:
 		DrawRectangle(0, topMargin, boarderWidth, boarderHeight, ORANGE);
 		DrawRectangle(boarderThickness, topMargin + boarderThickness, barWidth, barHeight, BLACK);
 		float expRatio = experience / expToNextLevel();
-		DrawRectangle(boarderThickness, topMargin + boarderThickness, barWidth * expRatio, barHeight, BLUE);
+		DrawRectangle(boarderThickness, topMargin + boarderThickness, static_cast<int>(barWidth * expRatio), barHeight, BLUE);
 		std::string levelText = std::format("等级：{}  ", level);	
 		Font font = window.getFont(boarderHeight);
 		DrawTextEx(font,

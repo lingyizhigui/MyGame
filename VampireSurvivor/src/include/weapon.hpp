@@ -166,8 +166,8 @@ public:
 		if (result) {
 			if (*result >= 0) {
 				bool rotated = (*result) % 2 != 0;
-				static constexpr float xOffset = 0.15;
-				static constexpr float yOffset = 0.10;
+				static constexpr float xOffset = 0.15f;
+				static constexpr float yOffset = 0.10f;
 				Rectangle dest = { playerPosition.x - defaultWidth * stats.area * xOffset, 
 					playerPosition.y - defaultHeight * stats.area * yOffset, 
 					defaultWidth * stats.area, 

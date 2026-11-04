@@ -28,8 +28,9 @@ public:
 			Vector2 pos = { static_cast<float>(_leftMargin + position.x),static_cast<float>(_topMargin + position.y) };
 			Color drawingColor = backgroundColor;
 			if (!isHovered) drawingColor.r -= 100;
-			DrawRectangle(pos.x, pos.y, static_cast<float>(width), static_cast<float>(height), drawingColor);
-			DrawRectangleLines(pos.x, pos.y, static_cast<float>(width), static_cast<float>(height),borderColor);
+			Rectangle rect = { pos.x, pos.y, static_cast<float>(width), static_cast<float>(height) };
+			DrawRectangleRec(rect, drawingColor);
+			DrawRectangleLinesEx(rect, 1.0, borderColor);
 			drawUnique(_topMargin, _leftMargin);
 		}
 	};
@@ -73,7 +74,7 @@ public:
 		LevelupButton(const Window& _window, IntVector2 _position, char _index, BaseItem* _item, int _width) :
 			Button(_window, _position, _width, _height, _backgroundColor), index(_index), item(_item),
 			description(item->getDescription()), texture(item->getIconTexture()){
-			descriptionResized = specificWidthString(description.data(), width - _paddingLeft * 2, fontSize, window);
+			descriptionResized = specificWidthString(description.data(), static_cast<float>(width - _paddingLeft * 2), fontSize, window);
 		}
 		void drawUnique(int _topMargin, int _leftMargin) const override {
 			Vector2 pos = { static_cast<float>(_leftMargin + position.x),static_cast<float>(_topMargin + position.y) };
@@ -125,7 +126,7 @@ public:
 			pressCooldown--;
 			if (pressCooldown <= 0) {
 				buttons[choosedIndex]->isHovered = false;
-				choosedIndex = (choosedIndex + dy + buttons.size()) % buttons.size();
+				choosedIndex = (choosedIndex + dy + static_cast<char>(buttons.size())) % static_cast<char>(buttons.size());
 				buttons[choosedIndex]->isHovered = true;
 				pressCooldown = DefaultPressCooldown;
 			}
