@@ -3,12 +3,12 @@
     {
       "image": "pick_up.png",
       "size": {
-        "w": 404,
-        "h": 138
+        "w": 936,
+        "h": 271
       },
       "sprites": [
         {
-          "filename": "experience_gem_green",
+          "filename": "Chest_Iron_Closed",
           "region": {
             "x": 5,
             "y": 5,
@@ -23,7 +23,7 @@
           }
         },
         {
-          "filename": "experience_gem_blue",
+          "filename": "Chest_Iron_Opened",
           "region": {
             "x": 138,
             "y": 5,
@@ -38,10 +38,175 @@
           }
         },
         {
-          "filename": "experience_gem_red",
+          "filename": "Chest_Wooden_Closed",
           "region": {
             "x": 271,
             "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Chest_Wooden_opened",
+          "region": {
+            "x": 404,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "CoinBag",
+          "region": {
+            "x": 537,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "experience_gem_red",
+          "region": {
+            "x": 670,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "experience_gem_blue",
+          "region": {
+            "x": 803,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "experience_gem_green",
+          "region": {
+            "x": 5,
+            "y": 138,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "RoastChicken",
+          "region": {
+            "x": 138,
+            "y": 138,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "RichCoinBag",
+          "region": {
+            "x": 271,
+            "y": 138,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "GemMagnet",
+          "region": {
+            "x": 404,
+            "y": 138,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Rosary",
+          "region": {
+            "x": 537,
+            "y": 138,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "GoldCoin",
+          "region": {
+            "x": 670,
+            "y": 138,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "TheWorld",
+          "region": {
+            "x": 803,
+            "y": 138,
             "w": 128,
             "h": 128
           },

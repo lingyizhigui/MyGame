@@ -24,6 +24,7 @@ class GameLevel {
 	static constexpr int ENEMY_WAVE_COUNT = 20;
 	const Window& window;
 	EnemyGenerator generator;
+	Player& player;
 
 	int gameTime = 0;
 	uint64_t enemyIdCounter = 0;
@@ -33,11 +34,14 @@ class GameLevel {
 	std::vector<BaseWeapon*> ownedWeapons;
 	std::vector<std::unique_ptr<PassiveItem>> allPassives;
 	std::vector<PassiveItem*> ownedPassives;
+	std::array<std::unique_ptr<BaseItem>, 2> lastLevelupItems = {
+		std::make_unique<levelupItem>(window, levelupItem::Type::Chicken, player),
+		std::make_unique<levelupItem>(window, levelupItem::Type::CoinBag, player)
+	};
 	std::vector<std::unique_ptr<Pickup>> pickupList;
 	std::unique_ptr<Panel> panel = nullptr;
 	std::vector<DemageNumber> demageNumbers;
 	int levelupCount = 0;
-	Player& player;
 	static constexpr int GRID_SIZE = 128;
 	enum class GameState {
 		Playing,
@@ -151,6 +155,12 @@ class GameLevel {
 		}
 		if (ownedPassives.size() >= MaxPassiveCount) {
 			std::erase_if(canLevelupPassives, [](BaseItem* item) { return item->getLevel() == 0; });
+		}
+		//如果无可升级物品
+		if(canLevelupWeapons.empty() && canLevelupPassives.empty()) {
+			forPanel[0] = lastLevelupItems[0].get();
+			forPanel[1] = lastLevelupItems[1].get();
+			return forPanel;
 		}
 		for (char i = 0; i < itemCount; i++) {
 			if (canLevelupPassives.empty() && canLevelupWeapons.empty()) {
@@ -279,6 +289,10 @@ public:
 			return;
 		}
 		gameTime++;
+		//调试
+		if (IsKeyPressed(KEY_U)) {
+			player.getStats().growth *= 1000.0f;
+		}
 		//怪物波次生成
 		if (IsKeyPressed(KEY_E)) {
 			for (int enemySpawn = 0; enemySpawn < ENEMY_WAVE_COUNT; enemySpawn++) {

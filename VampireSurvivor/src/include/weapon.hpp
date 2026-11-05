@@ -117,7 +117,7 @@ public:
 			for(auto& [_,attackedTime] : projectilePtr->attackedEnemy) {
 				attackedTime--;
 			}
-			std::erase_if(projectilePtr->attackedEnemy, [](const std::pair<uint64_t, int>& pair) {
+			std::erase_if(projectilePtr->attackedEnemy, [](const auto& pair) {
 				return pair.second <= 0;
 				});
 		}

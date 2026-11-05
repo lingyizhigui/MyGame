@@ -33,8 +33,13 @@ public:
 	virtual PickupResult applyEffect(Player&) = 0;
 	virtual bool isColliding(const Player&) const = 0;
 	PickupResult update(Player& player) {
-		if(isColliding(player)) {
+		if (currentState == state::collected) 
+			return {};
+		else if (currentState == state::collecting)
 			return applyEffect(player);
+		else {
+			if (isColliding(player)) 
+				return applyEffect(player);
 		}
 		return {};
 	};
