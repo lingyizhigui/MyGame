@@ -4,7 +4,7 @@
       "image": "pick_up.png",
       "size": {
         "w": 936,
-        "h": 271
+        "h": 404
       },
       "sprites": [
         {
@@ -53,54 +53,9 @@
           }
         },
         {
-          "filename": "Chest_Wooden_opened",
-          "region": {
-            "x": 404,
-            "y": 5,
-            "w": 128,
-            "h": 128
-          },
-          "margin": {
-            "x": 0,
-            "y": 0,
-            "w": 0,
-            "h": 0
-          }
-        },
-        {
           "filename": "CoinBag",
           "region": {
-            "x": 537,
-            "y": 5,
-            "w": 128,
-            "h": 128
-          },
-          "margin": {
-            "x": 0,
-            "y": 0,
-            "w": 0,
-            "h": 0
-          }
-        },
-        {
-          "filename": "experience_gem_red",
-          "region": {
-            "x": 670,
-            "y": 5,
-            "w": 128,
-            "h": 128
-          },
-          "margin": {
-            "x": 0,
-            "y": 0,
-            "w": 0,
-            "h": 0
-          }
-        },
-        {
-          "filename": "experience_gem_blue",
-          "region": {
-            "x": 803,
+            "x": 404,
             "y": 5,
             "w": 128,
             "h": 128
@@ -115,6 +70,51 @@
         {
           "filename": "experience_gem_green",
           "region": {
+            "x": 537,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Chest_Wooden_opened",
+          "region": {
+            "x": 670,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "GemMagnet",
+          "region": {
+            "x": 803,
+            "y": 5,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "experience_gem_red",
+          "region": {
             "x": 5,
             "y": 138,
             "w": 128,
@@ -128,7 +128,7 @@
           }
         },
         {
-          "filename": "RoastChicken",
+          "filename": "experience_gem_blue",
           "region": {
             "x": 138,
             "y": 138,
@@ -143,7 +143,7 @@
           }
         },
         {
-          "filename": "RichCoinBag",
+          "filename": "GoldCoin",
           "region": {
             "x": 271,
             "y": 138,
@@ -158,7 +158,7 @@
           }
         },
         {
-          "filename": "GemMagnet",
+          "filename": "RichCoinBag",
           "region": {
             "x": 404,
             "y": 138,
@@ -173,7 +173,7 @@
           }
         },
         {
-          "filename": "Rosary",
+          "filename": "RoastChicken",
           "region": {
             "x": 537,
             "y": 138,
@@ -188,7 +188,7 @@
           }
         },
         {
-          "filename": "GoldCoin",
+          "filename": "Rosary",
           "region": {
             "x": 670,
             "y": 138,
@@ -207,6 +207,81 @@
           "region": {
             "x": 803,
             "y": 138,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Light_0",
+          "region": {
+            "x": 5,
+            "y": 271,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Light_1",
+          "region": {
+            "x": 138,
+            "y": 271,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Light_2",
+          "region": {
+            "x": 271,
+            "y": 271,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "FireBreath",
+          "region": {
+            "x": 404,
+            "y": 271,
+            "w": 128,
+            "h": 128
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "Light_3",
+          "region": {
+            "x": 537,
+            "y": 271,
             "w": 128,
             "h": 128
           },

@@ -188,10 +188,24 @@ public:
 };
 
 //一些通用函数
+inline static std::mt19937 rng{ std::random_device{}() };
 inline bool bernoulli(double probability) {
-	static std::mt19937 rng{ std::random_device{}() };
 	bool res = std::bernoulli_distribution(probability)(rng);
 	return res;
+}
+inline float randomNormal(float center, float standardDeviation) {
+	assert(standardDeviation > 0.0f);
+	std::normal_distribution<float> dist(center, standardDeviation);
+	return dist(rng);
+}
+inline float randomNormal(float center, float standardDeviation, float areaLimit) {
+	assert(standardDeviation > 0.0f && areaLimit > 0.0f);
+	std::normal_distribution<float> dist(center, standardDeviation);
+	float result;
+	do {
+		result = dist(rng);
+	} while (result < center - areaLimit || result > center + areaLimit);
+	return result;
 }
 inline std::string specificWidthString(const std::string& str, float width, int fontSize, const Window& window) {
 	std::string result;

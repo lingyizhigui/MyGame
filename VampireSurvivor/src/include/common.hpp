@@ -78,6 +78,7 @@ inline void registerWeapon(const weaponCreateFunc& weaponCreate) {
 struct WeaponUpdateFunc
 {
 	std::function<Vector2()> getNearestEnemyDirection;
+	std::function<Vector2()> getPlayerTowards;
 };
 //攻击结果，默认为未造成伤害
 struct AttackResult {

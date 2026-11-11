@@ -4,14 +4,14 @@
 #include "common.hpp"
 #include <array>
 #include <cmath>
-enum PlayerStatus
-{
-	Normal,
-	Invincible,
-	Dead
-};
 class Player {
 private:
+	enum class PlayerStatus
+	{
+		Normal,
+		Invincible,
+		Dead
+	};
 	static constexpr float VELOCITY = 5.0f;
 	static constexpr int MAX_INVINCIBLE_TIME = 20;
 	static constexpr char MAX_MOVE_TIME = 6;
@@ -29,7 +29,7 @@ private:
 	float coin = 0.0f;
 	unsigned int level = 1;
 	char invincibleTime = 0;
-	PlayerStatus status = Normal;
+	PlayerStatus status = PlayerStatus::Normal;
 	//一些移动、动画状态
 	char moveTime = 0;
 	std::array<std::string, 4> animationFrames = { "1", "2", "3", "4" };
@@ -90,17 +90,23 @@ private:
 		}
 		return res;
 	}
+	std::string getAnimationFrame() const {
+		return animationFrames[animationIndex];
+	}
 	bool towards = true; // true: right, false: left
 public:
 	//外界需要访问的属性
 	static constexpr float collisionRadius = 32.0f;
 	float getPickupRadius() const { return stats.magnet * 128.0f; } //拾取范围
-	std::string getAnimationFrame() const {
-		return animationFrames[animationIndex];
-	}
 	const Vector2& getPosition() const { return position; }
-	PlayerStatus getStatus() const { return status; }
-	float getHealth() const { return health; }
+	std::optional<float> getLostHealth() const {
+		if (health < maxHealth) {
+			return maxHealth - health;
+		}
+		else {
+			return std::nullopt;
+		}
+	}
 	const PlayerStats& getStats() const { return stats; }
 	PlayerStats& getStats() { return stats; }
 	const bool& getTowards() const { return towards; }
@@ -126,7 +132,7 @@ public:
 	void update(float hurtDemage = 0.0f) {
 		switch (status)
 		{
-		case Normal:
+		case PlayerStatus::Normal:
 			move();
 			updateBloodParticles();
 			if (hurtDemage) {
@@ -137,24 +143,24 @@ public:
 					particle.velocity = { float(GetRandomValue(-200, 200)) / 100.0f, float(GetRandomValue(-100, 0)) / 100.0f };
 				}
 				if (health <= 0.0f)
-					status = Dead;
+					status = PlayerStatus::Dead;
 				else {
-					status = Invincible;
+					status = PlayerStatus::Invincible;
 					invincibleTime = MAX_INVINCIBLE_TIME;
 				}
 			}
 			break;
-		case Invincible:
+		case PlayerStatus::Invincible:
 			move();
 			updateBloodParticles();
 			if (invincibleTime > 0) {
 				invincibleTime--;
 			}
 			else {
-				status = Normal;
+				status = PlayerStatus::Normal;
 			}
 			break;
-		case Dead:
+		case PlayerStatus::Dead:
 			return;
 			break;
 		}
@@ -166,7 +172,7 @@ public:
 			source.width = -source.width;
 		}
 		Color color = WHITE;
-		if (status == Invincible) color = RED;
+		if (status == PlayerStatus::Invincible) color = RED;
 		DrawTexturePro(texture, source,
 			{ position.x, position.y, displaySize.x, displaySize.y },
 			{ displaySize.x / 2, displaySize.y }, 

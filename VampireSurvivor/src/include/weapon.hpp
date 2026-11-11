@@ -127,6 +127,96 @@ public:
 	virtual void draw() const = 0;
 	
 };
+//隐藏武器火焰吐息
+class HiddenWeaponFireBreath : public BaseWeapon {
+	static constexpr std::string_view Name = "FireBreath";
+	//不注册
+private:
+	int fireBreathTime = 0;
+	static constexpr int DefaultExistTime = 30;
+	int existTime() { return static_cast<int>(DefaultExistTime * stats.duration); }
+	static constexpr float DefaultSpeed = 8.0f;
+	float speed() { return DefaultSpeed * stats.projectileSpeed; }
+	static constexpr float DefaultAreaIncrease = 1.3f;
+	float areaIncrease() { return DefaultAreaIncrease * stats.area; }
+	class FireBreathProjectile : public Projectile {
+	public:
+		static constexpr int DefaultPushBack = 1;
+		static constexpr int DefaultAttackCooldown = 60;
+		static constexpr float DefaultRadius = 20.0f;
+		float radius = DefaultRadius;
+		Color color = {
+			static_cast<unsigned char>(247),
+			static_cast<unsigned char>(bernoulli(0.5) ? 32 : 126),
+			static_cast<unsigned char>(5),
+			static_cast<unsigned char>(bernoulli(0.5) ? 150 : 220)
+		};
+		Vector2 velocity;
+		int time;
+		Vector2 center() const {
+			return { rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f };
+		}
+		FireBreathProjectile(Rectangle _rect, float _damage, Vector2 _velocity, int _time) :
+			Projectile(_rect, _damage, DefaultPushBack, DefaultAttackCooldown), velocity(_velocity), time(_time) {
+		};
+	};
+public:
+	HiddenWeaponFireBreath(const Window& _window, const PlayerStats& _stats, const Vector2& _playerPosition, const bool& _playerTowards) :
+		BaseWeapon(_window, Name, _stats, _playerPosition, _playerTowards,
+			"你不应该看到这个"
+		) {
+		DefaultDemage = 10;
+		DefaultCooldown = 4;
+		MAX_LEVEL = 0;
+	}
+	void getFireBreath(int time) {
+		fireBreathTime += time;
+		coolTime = 0;
+	}
+	void updateDef(const WeaponUpdateFunc& funcs) override {
+		if(fireBreathTime > 0){
+			fireBreathTime--;
+			if (coolTime <= 0) {
+				int defaultRadius = FireBreathProjectile::DefaultRadius;
+				Rectangle dest = { playerPosition.x - defaultRadius, playerPosition.y - defaultRadius,
+					2.0f * defaultRadius, 2.0f * defaultRadius };
+				float damage = DefaultDemage * stats.strength;
+				Vector2 velocity = funcs.getPlayerTowards();
+				velocity = Vector2Scale(Vector2Normalize(velocity), speed());
+				velocity = Vector2Rotate(velocity, randomNormal(0.0f, 0.05f * PI, 0.10f * PI));
+				projectiles.push_back(std::make_unique<FireBreathProjectile>(dest, damage, velocity, existTime()));
+				coolTime = DefaultCooldown;
+			}
+			else {
+				coolTime--;
+			}
+		}
+		for (auto& projectilePtr : projectiles) {
+			FireBreathProjectile* fireBreathProjectilePtr = static_cast<FireBreathProjectile*>(projectilePtr.get());
+			fireBreathProjectilePtr->time--;
+			fireBreathProjectilePtr->radius += areaIncrease();
+			Vector2 newCenter = Vector2Add(fireBreathProjectilePtr->center(), fireBreathProjectilePtr->velocity);
+			fireBreathProjectilePtr->rect = { newCenter.x - fireBreathProjectilePtr->radius,
+				newCenter.y - fireBreathProjectilePtr->radius,
+				2.0f * fireBreathProjectilePtr->radius,
+				2.0f * fireBreathProjectilePtr->radius };
+		}
+		std::erase_if(projectiles, [this](const std::unique_ptr<Projectile>& projectilePtr) {
+			return static_cast<FireBreathProjectile*>(projectilePtr.get())->time <= 0;
+			});
+	};
+	void levelup() override {
+		assert(false && "HiddenWeaponFireBreath should not be leveled up");
+	}
+	void draw() const override {
+		BeginBlendMode(BLEND_ADDITIVE);
+		for (auto& projectilePtr : projectiles) {
+			FireBreathProjectile* fireBreathProjectilePtr = static_cast<FireBreathProjectile*>(projectilePtr.get());
+			DrawCircleV(fireBreathProjectilePtr->center(), fireBreathProjectilePtr->radius, fireBreathProjectilePtr->color);
+		}
+		EndBlendMode();
+	};
+};
 //神鞭
 class WeaponWhip : public BaseWeapon {
 public:

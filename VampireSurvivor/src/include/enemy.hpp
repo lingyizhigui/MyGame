@@ -59,6 +59,50 @@ public:
 	} status;
 	char frame;
 	char changeTime;
+	enum class SpecialStatus {
+		none,
+		frozen,
+		burning
+	} specialStatus = SpecialStatus::none;
+	void update(Vector2 playerPosition) {
+		if(specialStatus == SpecialStatus::frozen) {
+			specialStatus = SpecialStatus::none;
+			return;
+		}//冻结状态下跳过该帧的移动与更新动画
+		if (status == Enemy::Status::alive) {
+			if (changeTime > 15) {
+				changeTime = 0;
+				frame = (frame + 1) % def->moveFrames.size();
+			}
+			else {
+				changeTime++;
+			}
+			Vector2 direction = { playerPosition.x - position.x, playerPosition.y - position.y };
+			direction = Vector2Normalize(direction) * def->speed;
+			{
+				direction = direction * (GetRandomValue(90, 110) / 100.0f);
+			}
+			position = Vector2Add(position, direction);
+			if (direction.x > 0.0f) {
+				towards = true;
+			}
+			else if (direction.x < 0.0f) {
+				towards = false;
+			}
+		}
+		else if (status == Enemy::Status::dying) {	//dying
+			if (changeTime > 2) {
+				changeTime = 0;
+				frame++;
+			}
+			else {
+				changeTime++;
+			}
+			if (frame == def->deathFrames.size()) {
+				status = Enemy::Status::dead;
+			}
+		}
+	}
 	AttackResult takeDemage(float demage) { //返回是否由于此次攻击死亡
 		AttackResult result;
 		if (status != Status::alive) return result;

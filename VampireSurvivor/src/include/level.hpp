@@ -38,10 +38,9 @@ class GameLevel {
 		std::make_unique<levelupItem>(window, levelupItem::Type::Chicken, player),
 		std::make_unique<levelupItem>(window, levelupItem::Type::CoinBag, player)
 	};
-	std::vector<std::unique_ptr<Pickup>> pickupList;
+	std::vector<std::unique_ptr<FloatPickup>> pickupList;
 	std::unique_ptr<Panel> panel = nullptr;
 	std::vector<DemageNumber> demageNumbers;
-	int levelupCount = 0;
 	static constexpr int GRID_SIZE = 128;
 	enum class GameState {
 		Playing,
@@ -116,6 +115,14 @@ class GameLevel {
 				}
 			}
 		}
+	}
+	//检测是否在屏幕内
+	bool isInScreen(const Enemy& enemy) const {
+		return 
+			enemy.position.x > player.getPosition().x - window.getCenter().x &&
+			enemy.position.x < player.getPosition().x + window.getCenter().x &&
+			enemy.position.y > player.getPosition().y - window.getCenter().y &&
+			enemy.position.y < player.getPosition().y + window.getCenter().y;
 	}
 	//怪物死亡事件
 	void onEnemyDeath(const Enemy& enemy) {
@@ -194,6 +201,7 @@ class GameLevel {
 		}
 		return forPanel;
 	}
+	//武器更新注入函数
 	//获得最近的敌人相对位置
 	int nearestLastCheckTime = 0;
 	Vector2 nearestDirection = { 0.0f, 0.0f };
@@ -214,9 +222,53 @@ class GameLevel {
 		}
 		return nearestDirection;
 	}
+	//获得玩家移动方向，向量长度为移动距离
+	Vector2 lastPlayerPosition = { 0.0f, 0.0f };
+	Vector2 getPlayerTowards() {
+		Vector2 towards = Vector2Subtract(player.getPosition(), lastPlayerPosition);
+		if(towards == Vector2{0.0f, 0.0f}) {
+			towards = player.getTowards() ? Vector2{1e-6f, 0.0f} : Vector2{-1e-6f, 0.0f};
+		}
+		lastPlayerPosition = player.getPosition();
+		return towards;
+	}
 	const WeaponUpdateFunc weaponUpdateFuncs = {
-	.getNearestEnemyDirection = [this]() {return getNearestEnemyDirection(); }
+	.getNearestEnemyDirection = [this]() {return getNearestEnemyDirection(); },
+	.getPlayerTowards = [this]() {return getPlayerTowards(); }
 	};
+	//掉落物拾取结果处理
+	HiddenWeaponFireBreath fireBreath{ window, player.getStats(), player.getPosition(), player.getTowards() };
+	int timeFreezeTime = 0;
+	int levelupCount = 0;
+	void onPickup(const PickupResult& result) {
+		if (result.playerLevelupCount > 0) {
+			levelupCount += result.playerLevelupCount;
+		}
+		if(result.timeFreezeTime > 0) {
+			timeFreezeTime += result.timeFreezeTime;
+		}
+		if(result.fireBreathTime > 0) {
+			fireBreath.getFireBreath(result.fireBreathTime);
+		}
+		if(result.rosaryKill) {
+			for (Enemy& enemy : enemyList) {
+				if (enemy.status == Enemy::Status::alive && isInScreen(enemy)) {
+					enemy.takeDemage(enemy.health + 1.0f);
+					onEnemyDeath(enemy);
+					demageNumbers.emplace_back(enemy.getCenter(), 999, AttackResult::AttackType::Normal);
+				}
+			}
+		}
+		if(result.gemMagnet) {
+			for (auto& pickup : pickupList) {
+				if (pickup->isLying() == false) continue;
+				auto gem = dynamic_cast<ExperienceGem*>(pickup.get());
+				if(gem != nullptr) {
+					gem->beMagnet();
+				}
+			}
+		}
+	}
 public:
 	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/tjr.json"), player(_player),
 		camera({
@@ -250,16 +302,16 @@ public:
 		}
 	}
 	void update() {
-		if(GameState::GameOver == gameState) {
+		if (GameState::GameOver == gameState) {
 			return;
 		}
-		if(gameState == GameState::paused) {
-			if(IsKeyPressed(KEY_ESCAPE)) {
+		if (gameState == GameState::paused) {
+			if (IsKeyPressed(KEY_ESCAPE)) {
 				gameState = GameState::Playing;
 			}
 			return;
 		}
-		if(gameState == GameState::choosing) {
+		if (gameState == GameState::choosing) {
 			LevelupPanel* levelupPanel = static_cast<LevelupPanel*>(panel.get());
 			BaseItem* item = levelupPanel->update();
 			if (item != nullptr) {
@@ -284,14 +336,21 @@ public:
 			return;
 		}
 		//以下为Playing状态
-		if(IsKeyPressed(KEY_ESCAPE)) {
+		if (IsKeyPressed(KEY_ESCAPE)) {
 			gameState = GameState::paused;
 			return;
 		}
 		gameTime++;
 		//调试
 		if (IsKeyPressed(KEY_U)) {
-			player.getStats().growth *= 1000.0f;
+			//player.getStats().growth *= 1000.0f;
+			pickupList.emplace_back(std::make_unique<Pickup>(Pickup::Type::FireBreath, Vector2(0, 0)));
+		}
+		if (IsKeyPressed(KEY_I)) {
+			pickupList.emplace_back(std::make_unique<Pickup>(Pickup::Type::Rosary, Vector2(0, 0)));
+		}
+		if (IsKeyPressed(KEY_P)) {
+			pickupList.emplace_back(std::make_unique<Pickup>(Pickup::Type::Magnet, Vector2(0, 0)));
 		}
 		//怪物波次生成
 		if (IsKeyPressed(KEY_E)) {
@@ -322,42 +381,9 @@ public:
 			}
 		}
 		//怪物前进、更新动画
-		std::erase_if(enemyList, [](const Enemy& enemy) { return enemy.status == Enemy::Status::dead; });//删除死亡怪物
+		std::erase_if(enemyList, [](const Enemy& enemy) { return enemy.status == Enemy::Status::dead; });
 		for (Enemy& enemy : enemyList) {
-			if (enemy.status == Enemy::Status::alive) {
-				if (enemy.changeTime > 15) {
-					enemy.changeTime = 0;
-					enemy.frame = (enemy.frame + 1) % enemy.def->moveFrames.size();
-				}
-				else {
-					enemy.changeTime++;
-				}
-				Vector2 direction = { player.getPosition().x - enemy.position.x, player.getPosition().y - enemy.position.y };
-				direction = Vector2Normalize(direction) * enemy.def->speed;
-				{
-					direction = direction * (GetRandomValue(90, 110) / 100.0f);
-				}
-				enemy.direction = direction;
-				enemy.position = Vector2Add(enemy.position, direction);
-				if (direction.x > 0.0f) {
-					enemy.towards = true;
-				}
-				else if (direction.x < 0.0f) {
-					enemy.towards = false;
-				}
-			}
-			else if (enemy.status == Enemy::Status::dying) {	//dying
-				if (enemy.changeTime > 2) {
-					enemy.changeTime = 0;
-					enemy.frame++;
-				}
-				else {
-					enemy.changeTime++;
-				}
-				if (enemy.frame == enemy.def->deathFrames.size()) {
-					enemy.status = Enemy::Status::dead;
-				}
-			}
+			enemy.update(player.getPosition());
 		}
 		//每帧重建碰撞格子
 		for (auto& row : collideGrid) {
@@ -403,24 +429,25 @@ public:
 				}
 			}
 		}
-		//掉落物更新，升级事件也在这里
+		//掉落物更新
 		PickupResult result;
-		for (auto& pickup : pickupList) {
-			const PickupResult res = pickup->update(player);
-			if (res.playerLevelupCount > 0) {
-				result.playerLevelupCount += res.playerLevelupCount;
+		size_t size = pickupList.size();//过程中会新增元素（念珠击杀敌人后掉落经验宝石）
+		for (size_t i = 0; i < size; i++) {
+			const PickupResult res = pickupList[i]->update(player);
+			onPickup(res);
+		}
+		if (timeFreezeTime > 0) {
+			timeFreezeTime--;
+			for (Enemy& enemy : enemyList) {
+				if (isInScreen(enemy))
+					enemy.specialStatus = Enemy::SpecialStatus::frozen;
 			}
 		}
-		std::erase_if(pickupList, [](const std::unique_ptr<Pickup>& pickup) { return !pickup->isAlive(); });
-		if(result.playerLevelupCount > 0) {
-			levelupCount += result.playerLevelupCount;
-			panel = std::make_unique<LevelupPanel>(selectLevelup());
-			gameState = GameState::choosing;
-		}
+		std::erase_if(pickupList, [](const std::unique_ptr<FloatPickup>& pickup) { return !pickup->isAlive(); });
 		//玩家更新，检查受伤与自身更新
 		float hurtDemage = 0.0f;
-		for(int i=0;i<collideGrid.size();i++){
-			for(int j=0;j<collideGrid[i].size();j++){
+		for (int i = 0; i < collideGrid.size(); i++) {
+			for (int j = 0; j < collideGrid[i].size(); j++) {
 				Vector2 leftTop = collideGrid[i][j].PosLeftTop;
 				Vector2 playerPosition = GetWorldToScreen2D(player.getPosition(), camera);//2D坐标转换
 				if (playerPosition.x >= leftTop.x && playerPosition.x < leftTop.x + GRID_SIZE &&
@@ -431,18 +458,20 @@ public:
 							if (CheckCollisionCircles(player.getPosition(), player.collisionRadius, enemy.position, enemy.def->collideRadius)) {
 								hurtDemage = std::max(hurtDemage, enemy.def->power);
 								enemy.position = Vector2Add(enemy.position, Vector2Scale(enemy.direction, -10.0f));//推开怪物
-								}
 							}
-						);
+						}
+					);
 				}
 			}
 		}
 		player.update(hurtDemage);
 		camera.target = player.getPosition();
 		//武器攻击
-		for(auto& weapon : ownedWeapons){
+		BaseWeapon* hiddenFireBreath = &fireBreath;
+		ownedWeapons.push_back(hiddenFireBreath);//临时加入fireBreath
+		for (auto& weapon : ownedWeapons) {
 			auto& projectiles = weapon->update(weaponUpdateFuncs);
-			for(auto& projectile : projectiles){
+			for (auto& projectile : projectiles) {
 				Vector2 projectilePosition = GetWorldToScreen2D({ projectile->rect.x,projectile->rect.y }, camera);//2D坐标转换
 				Rectangle projectileRect = { projectilePosition.x,projectilePosition.y,projectile->rect.width,projectile->rect.height };
 				forNearGrids(projectileRect,
@@ -452,21 +481,27 @@ public:
 						if (result.isKilled) {
 							onEnemyDeath(enemy);
 						}
-						if(result.demage > 0) {
+						if (result.demage > 0) {
 							demageNumbers.emplace_back(enemy.getCenter(), static_cast<int>(result.demage), result.attackType);
 						}
 					});
 			}
 		}
+		ownedWeapons.pop_back();//移除fireBreath
 		//按y坐标排序，保证绘制顺序正确
 		std::sort(enemyList.begin(), enemyList.end(), [](const Enemy& a, const Enemy& b) {
 			return a.position.y < b.position.y;
 			});
 		//伤害数字更新
-		for(auto& demageNumber : demageNumbers){
+		for (auto& demageNumber : demageNumbers) {
 			demageNumber.time++;
 		}
 		std::erase_if(demageNumbers, [](const DemageNumber& demageNumber) { return demageNumber.time > DemageNumber::Duration; });
+		//最后处理升级
+		if (levelupCount > 0 && panel == nullptr) {
+			panel = std::make_unique<LevelupPanel>(selectLevelup());
+			gameState = GameState::choosing;
+		}
 	}
 	void drawLevel() const {
 		BeginMode2D(getGameCamera());
@@ -507,20 +542,24 @@ public:
 			}
 			float drawingHeight = enemy.def->height * 1.0f;
 			float drawingWidth = enemy.def->width * 1.0f;
+			Color color = WHITE;
+			if(enemy.specialStatus == Enemy::SpecialStatus::frozen) {
+				color = BLUE;
+			}
 			DrawTexturePro(texture, source,
 				{ enemy.position.x , enemy.position.y,drawingWidth,drawingHeight },
 				{ drawingWidth / 2.0f	 ,drawingHeight },
 				0.0f,
-				WHITE);
+				color);
 		}
 		//draw player
 		player.drawPlayer(window);
 		player.drawHealthBar();
 		//draw weapons
-		for (const auto& weapon : allWeapons) {
-			if (weapon->getLevel() == 0) continue;
+		for (const auto& weapon : ownedWeapons) {
 			weapon->draw();
 		}
+		fireBreath.draw();
 		//伤害数字
 		for (auto& demageNumber : demageNumbers) {
 			Color color = WHITE;
