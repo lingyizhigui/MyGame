@@ -18,7 +18,7 @@ struct PlayerStats {
 	int revival = 0;
 	float magnet = 1.0f;
 
-	float luck = 100.0f;
+	float luck = 1.0f;
 	float growth = 0.01f;
 	float greed = 1.0f;
 	float curse = 1.0f;

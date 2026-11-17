@@ -45,27 +45,30 @@ public:
 struct Enemy {
 	const EnemyDef* def;
 	uint64_t id;
+	float health;
 	Vector2 position;
 	Vector2 direction = {0.0f, 0.0f};
-//private:	//督促使用takeDemage函数来减少血量
-	float health;
 public:
-	bool towards;	// true: right, false: left
+	bool towards = true;	// true: right, false: left
 	//char status;	//0:dead, 1:alive,2:dying,
 	enum class Status {
 		dead,
 		alive,
 		dying
-	} status;
-	char frame;
-	char changeTime;
+	} status = Status::alive;
+	char frame = 0;
+	char changeTime = 0;
 	enum class SpecialStatus {
 		none,
 		frozen,
 		burning
 	} specialStatus = SpecialStatus::none;
+	enum class AttackType {
+		Normal,
+		LightSource
+	} attackType = AttackType::Normal;
 	void update(Vector2 playerPosition) {
-		if(specialStatus == SpecialStatus::frozen) {
+		if (specialStatus == SpecialStatus::frozen) {
 			specialStatus = SpecialStatus::none;
 			return;
 		}//冻结状态下跳过该帧的移动与更新动画
@@ -103,7 +106,8 @@ public:
 			}
 		}
 	}
-	AttackResult takeDemage(float demage) { //返回是否由于此次攻击死亡
+	//返回是否由于此次攻击死亡
+	AttackResult takeDemage(float demage) { 
 		AttackResult result;
 		if (status != Status::alive) return result;
 		health -= demage;
@@ -158,13 +162,28 @@ public:
 		Enemy e{
 			&def,
 			_id,
-			_positon,
-			{0.0f, 0.0f},
 			def.maxHealth,
-			true,	//towards: right
-			Enemy::Status::alive,
-			0	//frame index
+			_positon,
 		};
 		return e;
 	}
 };
+inline Enemy generateLightSourceEnemy(Vector2 position) {
+	static const std::vector<std::string> frames = { "Light_0" };
+	static const EnemyDef lightSourceDef(
+		"LightSource",
+		frames,
+		frames,
+		64, 64, 10.0f, 0.0f, 0.0f, 0, 0.0f, 0.0f
+	);
+	//光源从最大ID开始递减，保证不会与普通敌人ID冲突
+	static uint64_t lightSourceIdCounter = UINT64_MAX;
+	Enemy lightSourceEnemy{
+		&lightSourceDef,
+		lightSourceIdCounter--,
+		lightSourceDef.maxHealth,
+		position
+	};
+	lightSourceEnemy.attackType = Enemy::AttackType::LightSource;
+	return lightSourceEnemy;
+}

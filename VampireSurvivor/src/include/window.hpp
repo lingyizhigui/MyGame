@@ -207,6 +207,16 @@ inline float randomNormal(float center, float standardDeviation, float areaLimit
 	} while (result < center - areaLimit || result > center + areaLimit);
 	return result;
 }
+inline float randomUniform(float min, float max) {
+	assert(min < max);
+	std::uniform_real_distribution<float> dist(min, max);
+	return dist(rng);
+}
+inline size_t randomWeight(const std::vector<float>& weights) {
+	assert(!weights.empty());
+	std::discrete_distribution<size_t> dist(weights.begin(), weights.end());
+	return dist(rng);
+}
 inline std::string specificWidthString(const std::string& str, float width, int fontSize, const Window& window) {
 	std::string result;
 	std::string temp;

@@ -11,8 +11,8 @@
 class Projectile {
 public:
 	Rectangle rect;	//粗略矩形，level通过网格大致判断碰撞范围
-	float demage = 1;
-	float pushBack = 1;
+	float demage;
+	float pushBack;
 	int DefaultAttackCooldown = 5;	//攻击冷却，单位帧
 	std::unordered_map<uint64_t, int> attackedEnemy;	//记录已经攻击过的敌人，以及剩余攻击冷却
 	Projectile(Rectangle _rect, float _damage, float _pushBack, int _defaultAttackCooldown) :
@@ -25,7 +25,8 @@ public:
 	}
 	//默认攻击函数，击退敌人并造成伤害，可重写
 	virtual AttackResult attackDef(Enemy& enemy) {
-		Vector2 direction = Vector2Scale(enemy.direction, -pushBack);
+
+		Vector2 direction = Vector2Scale(Vector2Normalize(enemy.direction), -pushBack);
 		enemy.position = Vector2Add(enemy.position, direction);
 		return enemy.takeDemage(demage);
 	};

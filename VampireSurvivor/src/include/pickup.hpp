@@ -14,7 +14,7 @@ struct PickupResult {
 //实体对象基类，拥有位置和贴图
 class WorldObject {
 protected:
-	std::string_view textureName;
+	std::string textureName;
 	Vector2 position;
 	Vector2 displaySize = { 16.0f, 16.0f };
 public:
@@ -23,6 +23,15 @@ public:
 	};
 	void moveTo(const Vector2& _position) {
 		position = _position;
+	}
+	virtual void draw(const Window& window) const {
+		auto& drawSet = window.getTexture(std::string{ textureName });
+		Rectangle source = drawSet.source;
+		Texture2D* texture = drawSet.sprite;
+		DrawTexturePro(*texture, source,
+			{ position.x, position.y, displaySize.x, displaySize.y },
+			{ displaySize.x / 2.0f, displaySize.y / 2.0f },
+			0.0f, WHITE);
 	}
 };
 //拾取物基类
@@ -99,16 +108,9 @@ public:
 		}
 		return {};
 	};
-	void draw(const Window& window) const {
-		if (currentState != state::collected) {
-			auto& drawSet = window.getTexture(std::string{ textureName });
-			Rectangle source = drawSet.source;
-			Texture2D* texture = drawSet.sprite;
-			DrawTexturePro(*texture, source,
-				{ position.x, position.y, displaySize.x, displaySize.y },
-				{ displaySize.x / 2.0f, displaySize.y / 2.0f },
-				0.0f, WHITE);
-		}
+	void draw(const Window& window) const override {
+		if (currentState == state::collected) return;
+		WorldObject::draw(window);
 	}
 };
 //经验宝石
@@ -167,18 +169,29 @@ private:
 	{
 		std::string_view name;
 		std::string_view textureName;
+		float weight;
+		int limitLevel;
+		bool luckInfluence = false;	//是否受幸运属性影响掉落概率
 		std::function<PickupResult(Player&)> applyEffect;
 	};
 	static const Def& getDef(Type _type) {
 		static const std::array<Def, static_cast<int>(Type::SizeOfEnum)> defs = {
-			Def{"金币","GoldCoin", [](Player& player) { player.gainCoin(1); return PickupResult{}; }},
-			Def{"钱袋","CoinBag", [](Player& player) { player.gainCoin(5); return PickupResult{}; }},
-			Def{"大钱袋","RichCoinBag", [](Player& player) { player.gainCoin(25); return PickupResult{}; }},
-			Def{"鸡腿","RoastChicken", [](Player& player) { player.Heal(30.0f); return PickupResult{}; }},
-			Def{"【世界】","TheWorld", [](Player& player) { return PickupResult{.timeFreezeTime = 300}; }},
-			Def{"十字架","Rosary", [](Player& player) {return PickupResult{.rosaryKill = true}; }},
-			Def{"火焰喷射","FireBreath", [](Player& player) { return PickupResult{.fireBreathTime = 300}; }},
-			Def{"磁铁","GemMagnet", [](Player& player) { return PickupResult{.gemMagnet = true}; }}
+			Def{"金币","GoldCoin", 50.0f, 0,false,
+				[](Player& player) { player.gainCoin(1); return PickupResult{}; }},
+			Def{"钱袋","CoinBag", 10.0f, 0,false,
+				[](Player& player) { player.gainCoin(5); return PickupResult{}; }},
+			Def{"大钱袋","RichCoinBag", 1.0f, 0,true,
+				[](Player& player) { player.gainCoin(25); return PickupResult{}; }},
+			Def{"鸡腿","RoastChicken", 12.0f, 0,true,
+				[](Player& player) { player.Heal(30.0f); return PickupResult{}; }},
+			Def{"【世界】","TheWorld", 2.0f, 8,true,
+				[](Player& player) { return PickupResult{.timeFreezeTime = 300}; }},
+			Def{"十字架","Rosary", 2.0f, 8,true,
+				[](Player& player) {return PickupResult{.rosaryKill = true}; }},
+			Def{"火焰喷射","FireBreath", 1.0f, 0,true,
+				[](Player& player) { return PickupResult{.fireBreathTime = 300}; }},
+			Def{"磁铁","GemMagnet", 2.0f, 8,true,
+				[](Player& player) { return PickupResult{.gemMagnet = true}; }}
 		};
 		return defs[static_cast<int>(_type)];
 	}
@@ -201,5 +214,21 @@ public:
 			else
 				return false;
 		}
+	}
+	static const Type getRandomType(int playerLevel, float luck) {
+		std::vector<Type> availableTypes;
+		std::vector<float> weights;
+		for (int i = 0; i < static_cast<int>(Type::SizeOfEnum); i++) {
+			Type type = static_cast<Type>(i);
+			if (playerLevel >= getDef(type).limitLevel) {
+				availableTypes.push_back(type);
+				float weight = getDef(type).weight;
+				if (getDef(type).luckInfluence) {
+					weight *= luck;
+				}
+				weights.push_back(weight);
+			}
+		}
+		return availableTypes[randomWeight(weights)];
 	}
 };

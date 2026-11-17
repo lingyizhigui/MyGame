@@ -8,6 +8,22 @@
 #include "window.hpp"
 #include "ui.hpp"
 #include "raymath.h"
+#include <deque>
+struct SpawnTimerData {
+	int waveTimeSecond;
+	std::string enemyName;
+	int targetAmount;
+	int defaultIntervalFrame;
+};
+static const std::vector<SpawnTimerData> spawnTimerData = {
+	{ 60, "small_bat", 15,60 },
+	{ 120, "reed_slime", 30,60 },
+	{ 180, "copper_scarab", 50,60 },
+	{ 240, "lantern_wisp", 50,60 },
+	{ 300, "thorn_shroom", 30,60 },
+	{ 360, "bone_hound", 50,60 },
+	{ 420, "basalt_golem", 50,60 }
+};
 struct DemageNumber {
 	static constexpr int Duration = 40;
 	static constexpr int EmergenceTime = 10;
@@ -29,7 +45,7 @@ class GameLevel {
 	int gameTime = 0;
 	uint64_t enemyIdCounter = 0;
 	std::vector<Enemy> enemyList;
-	//std::vector<Enemy*> sortedEnemyList;	//指针数组，按y排序便于绘制
+	int existingEnemyCount = 0;
 	std::vector<std::unique_ptr<BaseWeapon>> allWeapons;
 	std::vector<BaseWeapon*> ownedWeapons;
 	std::vector<std::unique_ptr<PassiveItem>> allPassives;
@@ -39,6 +55,8 @@ class GameLevel {
 		std::make_unique<levelupItem>(window, levelupItem::Type::CoinBag, player)
 	};
 	std::vector<std::unique_ptr<FloatPickup>> pickupList;
+	static constexpr int MAX_LIGHT_SOURCE_COUNT = 8;
+	std::deque<std::unique_ptr<Enemy>> lightSources;
 	std::unique_ptr<Panel> panel = nullptr;
 	std::vector<DemageNumber> demageNumbers;
 	static constexpr int GRID_SIZE = 128;
@@ -118,16 +136,23 @@ class GameLevel {
 	}
 	//检测是否在屏幕内
 	bool isInScreen(const Enemy& enemy) const {
-		return 
-			enemy.position.x > player.getPosition().x - window.getCenter().x &&
-			enemy.position.x < player.getPosition().x + window.getCenter().x &&
+		return
+			enemy.position.x > player.getPosition().x - window.getCenter().x - enemy.def->width / 2.0f &&
+			enemy.position.x < player.getPosition().x + window.getCenter().x + enemy.def->width / 2.0f &&
 			enemy.position.y > player.getPosition().y - window.getCenter().y &&
-			enemy.position.y < player.getPosition().y + window.getCenter().y;
+			enemy.position.y < player.getPosition().y + window.getCenter().y + enemy.def->height;
 	}
 	//怪物死亡事件
 	void onEnemyDeath(const Enemy& enemy) {
-		int expDrop = enemy.def->expDrop;
-		pickupList.emplace_back(std::make_unique<ExperienceGem>(enemy.position, expDrop));//掉落经验宝石
+		if(enemy.attackType == Enemy::AttackType::Normal){
+			existingEnemyCount--;
+			int expDrop = enemy.def->expDrop;
+			pickupList.emplace_back(std::make_unique<ExperienceGem>(enemy.position, expDrop));//掉落经验宝石
+		}
+		else if(enemy.attackType == Enemy::AttackType::LightSource) {
+			auto type = Pickup::getRandomType(player.getLevel(), player.getStats().luck);
+			pickupList.emplace_back(std::make_unique<Pickup>(type, enemy.position));
+		}
 	}
 	//升级抽取
 	std::array<BaseItem*, 4> selectLevelup() {
@@ -269,8 +294,49 @@ class GameLevel {
 			}
 		}
 	}
+	//屏幕周围位置获取
+	//矩形版
+	Vector2 outScreenRandomPositionRect() {
+		static constexpr int area = 64;
+		static constexpr float ratio = 0.2f;
+		int gameWidth = window.getSize().x;
+		int gameHeight = window.getSize().y;
+		int r = GetRandomValue(0, (gameWidth + gameHeight) * (2 + 4 * ratio));
+		float xPadding = gameWidth * (0.5f + ratio);
+		float yPadding = gameHeight * (0.5f + ratio);
+		float x;
+		float y;
+		if (r < yPadding * 2) {
+			x = player.getPosition().x - xPadding + GetRandomValue(-area, area);
+			y = player.getPosition().y - yPadding + r;
+		}
+		else if (r < yPadding * 2 + xPadding * 2) {
+			x = player.getPosition().x - xPadding + r - yPadding * 2;
+			y = player.getPosition().y + yPadding + GetRandomValue(-area, area);
+		}
+		else if (r < yPadding * 4 + xPadding * 2) {
+			x = player.getPosition().x + xPadding + GetRandomValue(-area, area);
+			y = player.getPosition().y - yPadding + r - yPadding * 2 - xPadding * 2;
+		}
+		else {
+			x = player.getPosition().x - xPadding + r - yPadding * 4 - xPadding * 2;
+			y = player.getPosition().y - yPadding + GetRandomValue(-area, area);
+		}
+		return { x, y };
+	}
+	//椭圆版
+	Vector2 outScreenRandomPositionEllipse() {
+		float ratio = 2.0f;	//为根号2(1.414)时是最小面积外切椭圆
+		ratio *= randomNormal(1.0f, 0.15f, 0.25f);
+		float a = window.getSize().x /2.0f * ratio;
+		float b = window.getSize().y /2.0f * ratio;
+		float theta = GetRandomValue(0, 3590) * PI / 1800.0f;
+		float x = player.getPosition().x + a * cos(theta);
+		float y = player.getPosition().y + b * sin(theta);
+		return { x, y };
+	}
 public:
-	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/tjr.json"), player(_player),
+	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/enemies.json"), player(_player),
 		camera({
 			window.getCenter(),// offset
 			{0,0},// target
@@ -352,32 +418,48 @@ public:
 		if (IsKeyPressed(KEY_P)) {
 			pickupList.emplace_back(std::make_unique<Pickup>(Pickup::Type::Magnet, Vector2(0, 0)));
 		}
+		//光源更新，每秒生成
+		if (gameTime % 60 == 0) {
+			if (lightSources.size() < MAX_LIGHT_SOURCE_COUNT) {
+				for (int i = 0; i < MAX_LIGHT_SOURCE_COUNT - lightSources.size(); i++) {
+					Vector2 pos = outScreenRandomPositionEllipse();
+					lightSources.emplace_back(std::make_unique<Enemy>(generateLightSourceEnemy(pos)));
+				}
+			}
+			else {
+				int n = 0;
+				for (; n < lightSources.size(); n++) {
+					if (lightSources[n]->status == Enemy::Status::alive && !isInScreen(*lightSources[n])) {
+						break;
+					}
+				}
+				if(n != lightSources.size()) {
+					lightSources[n]->status = Enemy::Status::dead;	//后面马上删除
+				}
+				Vector2 pos = outScreenRandomPositionEllipse();
+				lightSources.emplace_back(std::make_unique<Enemy>(generateLightSourceEnemy(pos)));
+			}
+		}
+		std::erase_if(lightSources, [](const std::unique_ptr<Enemy>& ptr) {
+			return ptr->status == Enemy::Status::dead;
+			});
 		//怪物波次生成
-		if (IsKeyPressed(KEY_E)) {
-			for (int enemySpawn = 0; enemySpawn < ENEMY_WAVE_COUNT; enemySpawn++) {
-				static constexpr int area = 64;
-				int gameWidth = window.getSize().x;
-				int gameHeight = window.getSize().y;
-				int r = GetRandomValue(0, gameWidth * 3 + gameHeight * 3);
-				float x = 0.0f;
-				float y = 0.0f;
-				if (r < gameHeight * 1.5f) {
-					x = player.getPosition().x - gameWidth + GetRandomValue(-area, area);
-					y = player.getPosition().y - gameHeight + r;
-				}
-				else if (r < gameHeight * 1.5f + gameWidth * 1.5f) {
-					x = player.getPosition().x - gameWidth + r - gameHeight * 1.5f;
-					y = player.getPosition().y + gameHeight + GetRandomValue(-area, area);
-				}
-				else if (r < gameHeight * 3 + gameWidth * 1.5f) {
-					x = player.getPosition().x + gameWidth + GetRandomValue(-area, area);
-					y = player.getPosition().y - gameHeight + r - gameHeight * 1.5f - gameWidth * 1.5f;
-				}
-				else {
-					x = player.getPosition().x - gameWidth + r - gameHeight * 3 - gameWidth * 1.5f;
-					y = player.getPosition().y - gameHeight + GetRandomValue(-area, area);
-				}
-				enemyList.push_back(generator.spawn("tjr", { x,y }, enemyIdCounter++));
+		const SpawnTimerData* currentWave = nullptr;
+		for(const auto& wave: spawnTimerData) {
+			if(gameTime / 60 < wave.waveTimeSecond) {
+				currentWave = &wave;
+				break;
+			}
+		}
+		assert(currentWave != nullptr);
+		int interval = static_cast<int>(currentWave->defaultIntervalFrame * player.getStats().curse);
+		if (gameTime % interval == 0) {
+			int spawnCount = currentWave->targetAmount - existingEnemyCount;
+			spawnCount = std::max(1, spawnCount);
+			for (int i = 0; i < spawnCount; i++) {
+				Vector2 pos = outScreenRandomPositionEllipse();
+				enemyList.push_back(generator.spawn(currentWave->enemyName, pos, enemyIdCounter++));
+				existingEnemyCount++;
 			}
 		}
 		//怪物前进、更新动画
@@ -466,6 +548,16 @@ public:
 		}
 		player.update(hurtDemage);
 		camera.target = player.getPosition();
+		//在碰撞格子中加入光源
+		for(const auto& lightSource : lightSources) {
+			if (lightSource->status != Enemy::Status::alive) continue;
+			Vector2 screenPos = GetWorldToScreen2D(lightSource->position, camera);
+			int x = static_cast<int>(std::floor(screenPos.x) / GRID_SIZE) + 1;
+			int y = static_cast<int>(std::floor(screenPos.y) / GRID_SIZE) + 1;
+			if(x >= 0 && x < collideGrid[0].size() && y >= 0 && y < collideGrid.size()) {
+				collideGrid[y][x].enemies.push_back(lightSource.get());
+			}
+		}
 		//武器攻击
 		BaseWeapon* hiddenFireBreath = &fireBreath;
 		ownedWeapons.push_back(hiddenFireBreath);//临时加入fireBreath
@@ -488,10 +580,14 @@ public:
 			}
 		}
 		ownedWeapons.pop_back();//移除fireBreath
-		//按y坐标排序，保证绘制顺序正确
-		std::sort(enemyList.begin(), enemyList.end(), [](const Enemy& a, const Enemy& b) {
-			return a.position.y < b.position.y;
-			});
+		//按y坐标排序格子，保证绘制顺序正确
+		for(auto& row : collideGrid) {
+			for(auto& cell : row) {
+				std::sort(cell.enemies.begin(), cell.enemies.end(), [](const Enemy* a, const Enemy* b) {
+					return a->position.y < b->position.y;
+					});
+			}
+		}
 		//伤害数字更新
 		for (auto& demageNumber : demageNumbers) {
 			demageNumber.time++;
@@ -524,33 +620,38 @@ public:
 		for(const auto& pickup : pickupList){
 			pickup->draw(window);
 		}
-		//draw enemies
-		for (const auto& enemy : enemyList) {
-			if (enemy.status == Enemy::Status::dead) continue;
-			Texture2D texture;
-			Rectangle source;
-			if(enemy.status==Enemy::Status::alive){
-				texture = *window.getTexture(enemy.def->moveFrames[enemy.frame]).sprite;
-				source = window.getTexture(enemy.def->moveFrames[enemy.frame]).source;
+		//绘制格子中的实体
+		for (int i = 0; i < collideGrid.size(); i++) {
+			for (const auto& cells : collideGrid[i]) {
+				for (const auto& enemyPtr : cells.enemies) {
+					const Enemy& enemy = *enemyPtr;
+					if (enemy.status == Enemy::Status::dead) continue;
+					Texture2D texture;
+					Rectangle source;
+					if (enemy.status == Enemy::Status::alive) {
+						texture = *window.getTexture(enemy.def->moveFrames[enemy.frame]).sprite;
+						source = window.getTexture(enemy.def->moveFrames[enemy.frame]).source;
+					}
+					else if (enemy.status == Enemy::Status::dying) {
+						texture = *window.getTexture(enemy.def->deathFrames[enemy.frame]).sprite;
+						source = window.getTexture(enemy.def->deathFrames[enemy.frame]).source;
+					}
+					if (!enemy.towards) {
+						source.width = -source.width;
+					}
+					float drawingHeight = enemy.def->height * 1.0f;
+					float drawingWidth = enemy.def->width * 1.0f;
+					Color color = WHITE;
+					if (enemy.specialStatus == Enemy::SpecialStatus::frozen) {
+						color = BLUE;
+					}
+					DrawTexturePro(texture, source,
+						{ enemy.position.x , enemy.position.y,drawingWidth,drawingHeight },
+						{ drawingWidth / 2.0f	 ,drawingHeight },
+						0.0f,
+						color);
+				}
 			}
-			else if(enemy.status==Enemy::Status::dying){
-				texture = *window.getTexture(enemy.def->deathFrames[enemy.frame]).sprite;
-				source = window.getTexture(enemy.def->deathFrames[enemy.frame]).source;
-			}
-			if (!enemy.towards) {
-				source.width = -source.width;
-			}
-			float drawingHeight = enemy.def->height * 1.0f;
-			float drawingWidth = enemy.def->width * 1.0f;
-			Color color = WHITE;
-			if(enemy.specialStatus == Enemy::SpecialStatus::frozen) {
-				color = BLUE;
-			}
-			DrawTexturePro(texture, source,
-				{ enemy.position.x , enemy.position.y,drawingWidth,drawingHeight },
-				{ drawingWidth / 2.0f	 ,drawingHeight },
-				0.0f,
-				color);
 		}
 		//draw player
 		player.drawPlayer(window);
