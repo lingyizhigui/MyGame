@@ -1,0 +1,178 @@
+{
+  "textures": [
+    {
+      "image": "forest_atlas.png",
+      "size": {
+        "w": 192,
+        "h": 64
+      },
+      "sprites": [
+        {
+          "filename": "mad_forest_grass",
+          "region": {
+            "x": 0,
+            "y": 0,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_road",
+          "region": {
+            "x": 32,
+            "y": 0,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_road_fragment",
+          "region": {
+            "x": 64,
+            "y": 0,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_grass_fragment",
+          "region": {
+            "x": 96,
+            "y": 0,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_grass_sparse",
+          "region": {
+            "x": 128,
+            "y": 0,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_grass_dense",
+          "region": {
+            "x": 160,
+            "y": 0,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_flowers",
+          "region": {
+            "x": 0,
+            "y": 32,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_bush",
+          "region": {
+            "x": 32,
+            "y": 32,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_pine",
+          "region": {
+            "x": 64,
+            "y": 32,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_oak",
+          "region": {
+            "x": 96,
+            "y": 32,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        },
+        {
+          "filename": "mad_forest_round_tree",
+          "region": {
+            "x": 128,
+            "y": 32,
+            "w": 32,
+            "h": 32
+          },
+          "margin": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@
 #include "pickup.hpp"
 #include "window.hpp"
 #include "ui.hpp"
-#include "raymath.h"
+#include "atlas.hpp"
 #include <deque>
 struct SpawnTimerData {
 	int waveTimeSecond;
@@ -42,6 +42,7 @@ class GameLevel {
 	EnemyGenerator generator;
 	Player& player;
 
+	Atlas atlas;
 	int gameTime = 0;
 	uint64_t enemyIdCounter = 0;
 	std::vector<Enemy> enemyList;
@@ -336,7 +337,8 @@ class GameLevel {
 		return { x, y };
 	}
 public:
-	GameLevel(const Window& _window, Player& _player) : window(_window), generator("./resources/enemies.json"), player(_player),
+	GameLevel(const Window& _window, Player& _player) : 
+		window(_window), atlas(_window, "./resources/forest_map.json"), generator("./resources/enemies.json"), player(_player),
 		camera({
 			window.getCenter(),// offset
 			{0,0},// target
@@ -601,21 +603,8 @@ public:
 	}
 	void drawLevel() const {
 		BeginMode2D(getGameCamera());
-		//draw background
-		Vector2 leftTop = GetScreenToWorld2D({ 0,0 }, camera);
-		int xStart = (int)floor(leftTop.x / 64) * 64;
-		int yStart = (int)floor(leftTop.y / 64) * 64;
-		int columns = window.getSize().x / 64 + 1;
-		int rows = window.getSize().y / 64 + 2;
-		for (int i = 0; i < columns; i++) {
-			for (int j = 0; j < rows; j++) {
-				auto drawSet = window.getTexture("background");
-				DrawTextureRec(*drawSet.sprite,
-					drawSet.source,
-					Vector2(xStart + i * 64, yStart + j * 64),
-					WHITE);
-			}
-		}
+		//绘制地图
+		atlas.draw(player.getPosition());
 		//draw pickups
 		for(const auto& pickup : pickupList){
 			pickup->draw(window);
