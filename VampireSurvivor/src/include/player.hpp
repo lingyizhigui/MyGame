@@ -107,6 +107,7 @@ public:
 			return std::nullopt;
 		}
 	}
+	const float& getCoin() const { return coin; }
 	const PlayerStats& getStats() const { return stats; }
 	PlayerStats& getStats() { return stats; }
 	const bool& getTowards() const { return towards; }
@@ -129,7 +130,7 @@ public:
 				return particles.front().lifetime <= 0;
 			});
 	}
-	void update(float hurtDemage = 0.0f) {
+	bool update(float hurtDemage = 0.0f) {
 		switch (status)
 		{
 		case PlayerStatus::Normal:
@@ -149,6 +150,7 @@ public:
 					invincibleTime = MAX_INVINCIBLE_TIME;
 				}
 			}
+			return false;
 			break;
 		case PlayerStatus::Invincible:
 			move();
@@ -159,9 +161,10 @@ public:
 			else {
 				status = PlayerStatus::Normal;
 			}
+			return false;
 			break;
 		case PlayerStatus::Dead:
-			return;
+			return true;
 			break;
 		}
 	}

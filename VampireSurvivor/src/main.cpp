@@ -3,7 +3,8 @@
 #include "level.hpp"
 int main() {
 	Window window("Vampire Survivor");
-	window.loadTemporaryTexture("background", "./resources/background.png");
+	window.loadTemporaryTexture("skull_32x32", "./resources/skull_32x32.png");
+	window.loadTemporaryTexture("coin_32x32", "./resources/coin_32x32.png");
 	window.loadTemporaryTexture("1", "./resources/1.png");
 	window.loadTemporaryTexture("2", "./resources/2.png");
 	window.loadTemporaryTexture("3", "./resources/3.png");

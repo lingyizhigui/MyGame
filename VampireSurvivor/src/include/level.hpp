@@ -47,6 +47,8 @@ class GameLevel {
 	uint64_t enemyIdCounter = 0;
 	std::vector<Enemy> enemyList;
 	int existingEnemyCount = 0;
+	int killedEnemyCount = 0;
+	const float& goldGain = player.getCoin();
 	std::vector<std::unique_ptr<BaseWeapon>> allWeapons;
 	std::vector<BaseWeapon*> ownedWeapons;
 	std::vector<std::unique_ptr<PassiveItem>> allPassives;
@@ -147,6 +149,7 @@ class GameLevel {
 	void onEnemyDeath(const Enemy& enemy) {
 		if(enemy.attackType == Enemy::AttackType::Normal){
 			existingEnemyCount--;
+			killedEnemyCount++;
 			int expDrop = enemy.def->expDrop;
 			pickupList.emplace_back(std::make_unique<ExperienceGem>(enemy.position, expDrop));//掉落经验宝石
 		}
@@ -706,10 +709,32 @@ public:
 		}
 		//经验条
 		player.drawExpBar(window);//我也不知道为啥放进player里了
+		//击杀数、金币数
+		{
+			static constexpr int marginTop = 40;
+			static constexpr int marginRight = 10;
+			static constexpr int padding = 100;
+			static constexpr float iconSize = 32.0f;
+			const Font font = window.getFont(64);
+			std::string killCountStr = std::to_string(killedEnemyCount);
+			std::string goldGainStr = std::to_string(static_cast<int>(goldGain));
+			const auto& killText = window.getTexture("skull_32x32");
+			const auto& goldText = window.getTexture("coin_32x32");
+			Rectangle target = { window.getSize().x - marginRight - iconSize, static_cast<float>(marginTop), iconSize, iconSize };
+			DrawTexturePro(*goldText.sprite, goldText.source, target, { 0,0 }, 0.0f, WHITE);
+			DrawTextEx(font, goldGainStr.c_str(),
+				{ target.x - MeasureTextEx(font, goldGainStr.c_str(), iconSize, 0.0f).x, target.y },
+				iconSize, 0.0f, WHITE);
+			target.x -= static_cast<float>(padding);
+			DrawTexturePro(*killText.sprite, killText.source, target, { 0,0 }, 0.0f, WHITE);
+			DrawTextEx(font, killCountStr.c_str(),
+				{ target.x - MeasureTextEx(font, killCountStr.c_str(), iconSize, 0.0f).x, target.y },
+				iconSize, 0.0f, WHITE);
+		}
 		//已拥有物品
 		{
 			constexpr int Padding = 4;
-			constexpr int MarginTop = 64;
+			constexpr int MarginTop = 40;
 			constexpr int IconSize = 48;
 			constexpr int Collumns = 6;
 			auto drawItems = [&](const auto& items, int startRow) {
