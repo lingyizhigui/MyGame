@@ -67,7 +67,8 @@ class GameLevel {
 		Playing,
 		paused,
 		choosing,
-		GameOver
+		GameLose,
+		GameWin
 	} gameState = GameState::Playing;
 	//Camera相关
 	Camera2D camera;
@@ -305,7 +306,7 @@ class GameLevel {
 		static constexpr float ratio = 0.2f;
 		int gameWidth = window.getSize().x;
 		int gameHeight = window.getSize().y;
-		int r = GetRandomValue(0, (gameWidth + gameHeight) * (2 + 4 * ratio));
+		int r = GetRandomValue(0, static_cast<int>((gameWidth + gameHeight) * (2 + 4 * ratio)));
 		float xPadding = gameWidth * (0.5f + ratio);
 		float yPadding = gameHeight * (0.5f + ratio);
 		float x;
@@ -373,7 +374,38 @@ public:
 		}
 	}
 	void update() {
-		if (GameState::GameOver == gameState) {
+		if (GameState::GameLose == gameState) {
+			static constexpr int buttonWidth = 200;
+			static constexpr int buttonHeight = 64;
+			if (panel == nullptr) {
+				ButtonPanel::ButtonInfo quitButton = {
+					.text = "Quit",
+					.position = IntVector2(window.getSize().x / 2 - buttonWidth / 2, window.getSize().y / 2 - buttonHeight / 2),
+					.width = buttonWidth,
+					.height = buttonHeight,
+					.backgroundColor = RED,
+					.onClick = [this]() {},
+				};
+				std::vector<ButtonPanel::ButtonInfo> buttons = { quitButton };
+				if (player.getStats().revival > 0) {
+					ButtonPanel::ButtonInfo revivalButton = quitButton;
+					revivalButton.text = "Revival";
+					revivalButton.position.y -= buttonHeight + 16;
+					revivalButton.backgroundColor = GREEN;
+					revivalButton.onClick = [this]() {
+						player.getStats().revival--;
+						player.heal(std::nullopt);
+						player.beInvincible(60);
+						gameState = GameState::Playing;
+						panel.reset();
+						};
+					buttons.push_back(revivalButton);
+				}
+				panel = std::make_unique<ButtonPanel>(window, buttons);
+			}
+			else {
+				panel->update();
+			}
 			return;
 		}
 		if (gameState == GameState::paused) {
@@ -384,8 +416,8 @@ public:
 		}
 		if (gameState == GameState::choosing) {
 			LevelupPanel* levelupPanel = static_cast<LevelupPanel*>(panel.get());
-			BaseItem* item = levelupPanel->update();
-			if (item != nullptr) {
+			levelupPanel->update();
+			if (BaseItem* item = levelupPanel->takeSelectedItem()) {
 				if (item->getLevel() == 0) {
 					if (auto* weapon = dynamic_cast<BaseWeapon*>(item)) {
 						ownedWeapons.push_back(weapon);
@@ -419,6 +451,9 @@ public:
 		}
 		if (IsKeyPressed(KEY_I)) {
 			pickupList.emplace_back(std::make_unique<Pickup>(Pickup::Type::Rosary, Vector2(0, 0)));
+		}
+		if(IsKeyPressed(KEY_O)) {
+			pickupList.emplace_back(std::make_unique<Pickup>(Pickup::Type::TheWorld, Vector2(0, 0)));
 		}
 		if (IsKeyPressed(KEY_P)) {
 			pickupList.emplace_back(std::make_unique<Pickup>(Pickup::Type::Magnet, Vector2(0, 0)));
@@ -531,7 +566,7 @@ public:
 			}
 		}
 		std::erase_if(pickupList, [](const std::unique_ptr<FloatPickup>& pickup) { return !pickup->isAlive(); });
-		//玩家更新，检查受伤与自身更新
+		//玩家更新，检查受伤与自身更新，返回死亡
 		float hurtDemage = 0.0f;
 		for (int i = 0; i < collideGrid.size(); i++) {
 			for (int j = 0; j < collideGrid[i].size(); j++) {
@@ -551,8 +586,9 @@ public:
 				}
 			}
 		}
-		player.update(hurtDemage);
+		bool isPlayerDead = player.update(hurtDemage);
 		camera.target = player.getPosition();
+		if (isPlayerDead) gameState = GameState::GameLose;
 		//在碰撞格子中加入光源
 		for(const auto& lightSource : lightSources) {
 			if (lightSource->status != Enemy::Status::alive) continue;
@@ -694,6 +730,11 @@ public:
 		//绘制固定UI
 		BeginMode2D(getUICamera());
 		DrawFPS(0, 700);
+		//临时滤镜层
+		Color filterColor = BLANK;
+		if (timeFreezeTime > 0) filterColor = { 0, 0, 255, 128 };
+		if (gameState == GameState::GameLose) filterColor = { 255, 0, 0, 64 };
+		DrawRectangle(0, 0, window.getSize().x, window.getSize().y, filterColor);
 		//游戏时钟
 		{
 			int seconds = gameTime / 60;

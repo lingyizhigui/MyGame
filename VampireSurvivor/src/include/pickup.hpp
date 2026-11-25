@@ -183,7 +183,7 @@ private:
 			Def{"大钱袋","RichCoinBag", 1.0f, 0,true,
 				[](Player& player) { player.gainCoin(25); return PickupResult{}; }},
 			Def{"鸡腿","RoastChicken", 12.0f, 0,true,
-				[](Player& player) { player.Heal(30.0f); return PickupResult{}; }},
+				[](Player& player) { player.heal(30.0f); return PickupResult{}; }},
 			Def{"【世界】","TheWorld", 2.0f, 8,true,
 				[](Player& player) { return PickupResult{.timeFreezeTime = 300}; }},
 			Def{"十字架","Rosary", 2.0f, 8,true,

@@ -185,6 +185,13 @@ public:
 		DrawRectangle(0, bottom,GetScreenWidth(), GetScreenHeight() - bottom, BLACK);
 		EndDrawing();
 	}
+	Vector2 mousePosition() const {
+		auto [scale, offset] = getViewTransform();
+		Vector2 mousePos = GetMousePosition();
+		mousePos.x = (mousePos.x - offset.x) / scale;
+		mousePos.y = (mousePos.y - offset.y) / scale;
+		return mousePos;
+	}
 };
 
 //一些通用函数
@@ -225,7 +232,7 @@ inline std::string specificWidthString(const std::string& str, float width, int 
 		int byte = 0;
 		GetCodepointNext(c, &byte);
 		temp.append(c, byte);
-		float textWidth = MeasureTextEx(font, temp.c_str(), fontSize, 0.0f).x;
+		float textWidth = MeasureTextEx(font, temp.c_str(), static_cast<float>(fontSize), 0.0f).x;
 		if (textWidth > width && temp.size() > byte) {//防止单个字符过宽导致死循环
 			temp.resize(temp.size() - byte);
 			temp.append("\n");
@@ -237,4 +244,7 @@ inline std::string specificWidthString(const std::string& str, float width, int 
 	}
 	result.append(temp);
 	return result;
+}
+inline bool isMouseMoving() {
+	return GetMouseDelta().x != 0.0f || GetMouseDelta().y != 0.0f;
 }

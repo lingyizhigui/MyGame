@@ -3,23 +3,23 @@
 #include <vector>
 #include <string>
 struct PlayerStats {
-	float maxHealth = 1.0f;
+	float maxHealth = 0.01f;
 	float recovery = 0.0f;
 	int armor = 0;
 	float moveSpeed = 1.0f;
 
-	float strength = 4.0f;
+	float strength = 1.0f;
 	float projectileSpeed = 1.0f;
 	float duration = 1.5f;
 	float area = 1.0f;
 
 	float cooldown = 1.0f;
 	int amount = 1;
-	int revival = 0;
+	int revival = 1;
 	float magnet = 1.0f;
 
 	float luck = 1.0f;
-	float growth = 0.01f;
+	float growth = 5.5f;
 	float greed = 1.0f;
 	float curse = 1.0f;
 };

@@ -178,7 +178,7 @@ public:
 		if(fireBreathTime > 0){
 			fireBreathTime--;
 			if (coolTime <= 0) {
-				int defaultRadius = FireBreathProjectile::DefaultRadius;
+				float defaultRadius = FireBreathProjectile::DefaultRadius;
 				Rectangle dest = { playerPosition.x - defaultRadius, playerPosition.y - defaultRadius,
 					2.0f * defaultRadius, 2.0f * defaultRadius };
 				float damage = DefaultDemage * stats.strength;
@@ -571,7 +571,7 @@ public:
 			Rectangle dest = projectile->rect;
 			DrawTexturePro(*window.getTexture("hammer_effect").sprite, source,
 				{ dest.x + dest.width / 2.0f, dest.y + dest.height / 2.0f, dest.width, dest.height },
-				{ dest.width / 2.0f, dest.height / 2.0f }, projectile->angle, WHITE);
+				{ dest.width / 2.0f, dest.height / 2.0f }, static_cast<float>(projectile->angle), WHITE);
 		}
 	}
 };

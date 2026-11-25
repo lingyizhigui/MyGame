@@ -78,7 +78,7 @@ public:
 	};
 	static const LevelupDef& getDef(Type _type) {
 		static const std::array<LevelupDef, 2> levelupDefs = {
-			LevelupDef{"烤鸡","RoastChicken","回复30生命值", [](Player& player) { player.Heal(30.0f); }},
+			LevelupDef{"烤鸡","RoastChicken","回复30生命值", [](Player& player) { player.heal(30.0f); }},
 			LevelupDef{"钱袋","RichCoinBag","获得25金币", [](Player& player) { player.gainCoin(25); }}
 		};
 		return levelupDefs[static_cast<int>(_type)];

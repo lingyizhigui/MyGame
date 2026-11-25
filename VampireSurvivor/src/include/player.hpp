@@ -19,10 +19,10 @@ private:
 	static constexpr int BLOOD_PARTICLE_COUNT = 128;
 	static constexpr int DefaultMaxHealth = 100;
 	PlayerStats stats;
-	static constexpr Vector2 displaySize = { 64.0f, 64.0f };
+	static constexpr Vector2 DefaultDisplaySize = { 64.0f, 64.0f };
 	Vector2 position = {0.0f, 0.0f};
 	//一些游玩状态
-	static constexpr int maxHealthBonus = 1000;
+	static constexpr int maxHealthBonus = 1;
 	float maxHealth;
 	float health;
 	float experience = 0.0f;
@@ -35,6 +35,8 @@ private:
 	std::array<std::string, 4> animationFrames = { "1", "2", "3", "4" };
 	char animationIndex = 0;
 	char animationTime = 0;
+	char deathAnimationTime = 0;
+	char MAX_DEATH_ANIMATION_TIME = 30;
 	//受伤飙血
 	struct BloodParticle {
 		static constexpr float GRAVITY = 0.2f;
@@ -151,7 +153,6 @@ public:
 				}
 			}
 			return false;
-			break;
 		case PlayerStatus::Invincible:
 			move();
 			updateBloodParticles();
@@ -162,11 +163,14 @@ public:
 				status = PlayerStatus::Normal;
 			}
 			return false;
-			break;
 		case PlayerStatus::Dead:
-			return true;
-			break;
+			deathAnimationTime++;
+			if(deathAnimationTime >= MAX_DEATH_ANIMATION_TIME) {
+				return true;
+			}
+			return false;
 		}
+		std::abort();
 	}
 	void drawPlayer(const Window& window) const {
 		Texture2D texture = *window.getTexture(getAnimationFrame()).sprite;
@@ -175,7 +179,13 @@ public:
 			source.width = -source.width;
 		}
 		Color color = WHITE;
-		if (status == PlayerStatus::Invincible) color = RED;
+		Vector2 displaySize = DefaultDisplaySize;
+		if (status == PlayerStatus::Invincible || status == PlayerStatus::Dead) color = RED;
+		if (status == PlayerStatus::Dead) {
+			float ratio = static_cast<float>(deathAnimationTime) / MAX_DEATH_ANIMATION_TIME;
+			displaySize.x *= 1.0f + ratio * 2.0f;
+			displaySize.y *= 1.0f - ratio;
+		}
 		DrawTexturePro(texture, source,
 			{ position.x, position.y, displaySize.x, displaySize.y },
 			{ displaySize.x / 2, displaySize.y }, 
@@ -231,9 +241,16 @@ public:
 		}
 		return changedLevel;
 	}
-	void Heal(float heal) {
-		health += heal;
-		if (health > maxHealth) health = maxHealth;
+	void heal(std::optional<float> _heal) {
+		if (_heal.has_value()) {
+			health += _heal.value();
+			if (health > maxHealth) health = maxHealth;
+		}
+		else health = maxHealth;
+	}
+	void beInvincible(float time) {
+		status = PlayerStatus::Invincible;
+		invincibleTime = static_cast<char>(time);
 	}
 	void gainCoin(int amount) {
 		coin += static_cast<float>(amount) * stats.greed;
